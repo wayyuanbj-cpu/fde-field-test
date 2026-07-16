@@ -141,7 +141,121 @@ No new personal data is collected. The English version must retain the current r
 - no tracking on `file:`, localhost, DNT, or webdriver environments;
 - analytics failure cannot block any assessment flow.
 
-## 10. Error Handling and Compatibility
+## 10. Professional SEO and Search Discovery
+
+SEO is part of both public language versions, not an English-only add-on. The goal is to make the site technically discoverable and genuinely useful for searches around FDE and Field Deployment Engineer. No implementation or submission may claim guaranteed indexing, recommendation, or ranking.
+
+### 10.1 Keyword intent
+
+Use a narrow, credible keyword map instead of keyword stuffing.
+
+Chinese primary intents:
+
+- `FDE`
+- `FDE 是什么`
+- `FDE 工程师`
+- `FDE 能力测试`
+- `FDE 水平测试`
+- `FDE 培训`
+- `Field Deployment Engineer`
+- `企业 AI 交付`
+
+English primary intents:
+
+- `FDE`
+- `Field Deployment Engineer`
+- `FDE assessment`
+- `FDE skills test`
+- `Field Deployment Engineer assessment`
+- `enterprise AI delivery`
+- `AI deployment engineer`
+- `AI solution delivery`
+
+`FD` is not a primary keyword because it is highly ambiguous. It may appear naturally where relevant, but the site must consistently establish `FDE` and `Field Deployment Engineer` as the intended entity.
+
+### 10.2 Search-facing page content
+
+Both home pages add a mirrored, visible, below-the-fold knowledge section that answers real search intent without weakening the existing hero:
+
+- What is an FDE?
+- What does a Field Deployment Engineer actually do?
+- Which capabilities does this assessment measure?
+- How do the junior, intermediate, and advanced levels work?
+- Is this a formal certification?
+- How is FDE different from a prompt engineer, solutions engineer, or implementation consultant?
+
+This content must demonstrate the OneX FDE training framework, explain the assessment methodology, and remain useful even if a visitor does not take the test. Chinese and English versions carry equivalent meaning but are written natively for their respective audiences.
+
+### 10.3 Titles, snippets, headings, and share metadata
+
+Each language receives distinct, descriptive metadata aligned with the visible H1:
+
+- Chinese title direction: `FDE 测试：你具备成为 Field Deployment Engineer 的潜质吗？｜OneX`
+- English title direction: `FDE Assessment: Could You Ship as a Field Deployment Engineer? | OneX`
+
+Add localized:
+
+- meta descriptions;
+- canonical URLs;
+- reciprocal `hreflang`;
+- Open Graph title, description, URL, locale, and image;
+- Twitter card metadata;
+- a 1200×630 bilingual-safe social preview image;
+- descriptive, crawlable internal language-switch links.
+
+Do not add obsolete `meta keywords` tags.
+
+### 10.4 Structured data
+
+Add accurate JSON-LD using only properties supported by visible content:
+
+- `WebSite` for the FDE Field Test site name and canonical URL;
+- `Organization` for OneX AI Community and its logo;
+- localized descriptions and `inLanguage` where applicable.
+
+Do not add fake reviews, ratings, certificates, FAQ rich-result promises, or unsupported claims. Validate JSON-LD before release.
+
+### 10.5 Crawling and multilingual indexing
+
+The current production fallback incorrectly returns the HTML home page for `/robots.txt` and `/sitemap.xml`. Replace that behavior with real files and exact static routes:
+
+- `/robots.txt` served as `text/plain`;
+- `/sitemap.xml` served as XML;
+- the sitemap lists only canonical public URLs;
+- both `/` and `/en/` include reciprocal `xhtml:link` language alternates;
+- `lastmod` reflects a real content release date;
+- `robots.txt` references the sitemap;
+- `/api/` is not crawlable;
+- `/stats/` remains protected from indexing through its existing HTML and HTTP `noindex` signals.
+
+Unknown SEO assets must return a real 404 instead of the home page.
+
+### 10.6 Search-engine notification and ownership tools
+
+- Generate and host an IndexNow key file.
+- Submit `/` and `/en/` to IndexNow after production deployment.
+- Prepare Google Search Console and Bing Webmaster Tools verification paths.
+- Submit `sitemap.xml` and request inspection for both public URLs once the user is signed in to the relevant webmaster accounts.
+
+Search Console ownership and manual inspection require the user's authenticated Google account. The site implementation and verification endpoints can be prepared without that login, but account-side submission is a separate acceptance step.
+
+### 10.7 SEO quality and measurement
+
+Acceptance covers:
+
+- people-first, original FDE methodology content rather than keyword repetition;
+- one clear H1 per language page;
+- correct heading hierarchy and crawlable links;
+- mobile layout and page experience;
+- no public-page `noindex`;
+- canonical and `hreflang` reciprocity;
+- valid sitemap and robots responses with correct content types;
+- valid JSON-LD;
+- correct Open Graph image dimensions and metadata;
+- successful IndexNow response;
+- a post-launch checklist for Search Console impressions, queries, indexing, Core Web Vitals, and Bing crawl diagnostics.
+
+## 11. Error Handling and Compatibility
 
 - Missing English content must fail loudly in tests, not silently fall back to Chinese inside a question.
 - A language switch during an active assessment must restore by question ID.
@@ -149,7 +263,7 @@ No new personal data is collected. The English version must retain the current r
 - English text must not cause horizontal overflow at 390 px.
 - Share-card text must fit or shrink predictably for long English labels and optional names.
 
-## 11. Testing and Acceptance
+## 12. Testing and Acceptance
 
 Acceptance requires:
 
@@ -161,10 +275,18 @@ Acceptance requires:
 - final English share-card generation and download;
 - desktop and 390 px mobile checks with no overflow or console errors;
 - analytics locale validation and Chinese-dashboard language breakdown;
+- SEO regression checks for titles, descriptions, canonical URLs, `hreflang`, JSON-LD, robots, sitemap, and social cards;
 - production verification for `/`, `/en/`, `/stats/`, API health, Xray, and analytics failure isolation.
 
-## 12. Deployment
+## 13. Deployment
 
 The English mirror ships in the existing GitHub repository and is deployed through the existing GitHub-to-Aliyun script. Public web deployment includes `/en/`; translation working files under `docs/` remain excluded from the web root.
 
 The release is complete only when GitHub `main`, the Aliyun web root, and live browser checks all match the same commit.
+
+## 14. SEO Reference Basis
+
+The implementation follows current primary-source guidance from:
+
+- Google Search Central: multilingual sites, localized versions, title links, structured data, people-first content, sitemaps, and recrawl requests;
+- Bing Webmaster Guidelines: crawlable links, canonical URLs, sitemap freshness, and IndexNow.
