@@ -2,6 +2,7 @@ import { dimensionMeta, questions } from "./question-data.js";
 import { scoreAssessment } from "./scoring.js";
 import { drawShareCard } from "./share-card.js";
 import { openLevelSelector } from "./exam-app.js";
+import { track } from "./analytics.js";
 
 const views = [...document.querySelectorAll(".view")];
 const state = { current: 0, answers: {}, result: null, previousView: "landing-view" };
@@ -76,6 +77,7 @@ function startAssessment(reset = false) {
   }
   showView("quiz-view");
   renderQuestion();
+  track("quick_start");
 }
 
 function nextQuestion() {
@@ -91,6 +93,7 @@ function nextQuestion() {
     return;
   }
   state.result = scoreAssessment(state.answers, questions);
+  track("quick_complete", { score: state.result.index });
   renderResult();
 }
 
@@ -183,6 +186,7 @@ function showShareCard() {
   const panel = document.querySelector("#share-panel");
   panel.hidden = false;
   drawShareCard(document.querySelector("#share-canvas"), state.result);
+  track("share_generate");
   panel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -228,3 +232,5 @@ window.addEventListener("resize", () => {
     drawRadar(document.querySelector("#radar-canvas"), state.result.dimensions);
   }
 });
+
+track("page_view");

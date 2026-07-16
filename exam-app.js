@@ -12,6 +12,7 @@ import {
 import { clearExamState, examStateKey, loadExamState, saveExamState } from "./exam-state.js";
 import { drawExamShareCard } from "./exam-share-card.js";
 import { sanitizeShareName, shareFilename } from "./share-name.js";
+import { track } from "./analytics.js";
 
 const ACTIVE_KEY = "onex-fde-exam:active";
 const TYPE_LABELS = { single: "单选题", multiple: "多选题", judgment: "判断题" };
@@ -202,6 +203,7 @@ function startExam(mode, restoredState = null) {
     state.questions = buildExam(state.level, mode);
     state.answers = {};
     state.currentIndex = 0;
+    track("level_start", { level: state.level, mode });
   }
   showView("exam-view");
   renderExamShell();
@@ -435,10 +437,19 @@ function confirmSubmit() {
   $("#submit-panel").hidden = true;
   state.result = scoreExam(state.questions, state.answers);
   state.qualification = evaluateQualification(state.mode, state.result);
+  const followingLevel = nextLevel(state.level);
+  const wasFollowingAccessible = followingLevel ? canAccessLevel(state.progression, followingLevel) : false;
   const updated = updateProgression(state.progression, state.level, state.mode, state.result);
   if (updated !== state.progression) {
     state.progression = updated;
     saveProgression(storage(), state.progression);
+  }
+  track("level_complete", { level: state.level, mode: state.mode, score: state.result.score });
+  if (followingLevel && !wasFollowingAccessible && canAccessLevel(state.progression, followingLevel)) {
+    track("level_unlock", { level: followingLevel });
+  }
+  if (state.level === "advanced" && state.mode === "full" && state.qualification.qualifies) {
+    track("final_complete", { level: state.level, mode: state.mode, score: state.result.score });
   }
   const target = storage();
   if (target) clearExamState(target, examStateKey(state.level, state.mode));
@@ -485,6 +496,7 @@ function shareResult() {
     const name = sanitizeShareName(final ? $("#final-share-name").value : "");
     const scores = Object.fromEntries(levelOrder.map((level) => [level, state.progression.records[level]?.score]));
     drawExamShareCard(canvas, state.result, levelDefinitions[state.level], { final, name, scores });
+    track("share_generate", { level: state.level, mode: state.mode });
     status.textContent = final
       ? `三级挑战分享卡已生成，展示名为“${name}”。姓名不会上传或保存。`
       : "成绩卡已生成，可保存 PNG 分享。";

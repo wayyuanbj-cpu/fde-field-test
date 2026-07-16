@@ -24,7 +24,7 @@ REQUIRED_BY_EVENT = {
     "level_complete": {"level", "mode", "score"},
     "level_unlock": {"level"},
     "final_complete": {"level", "mode", "score"},
-    "share_generate": {"level", "mode"},
+    "share_generate": set(),
 }
 
 
