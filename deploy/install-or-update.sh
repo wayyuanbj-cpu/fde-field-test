@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/wayyuanbj-cpu/fde-field-test.git"
-ARCHIVE_URL="https://github.com/wayyuanbj-cpu/fde-field-test/archive/refs/heads/main.tar.gz"
+ARCHIVE_URL="https://codeload.github.com/wayyuanbj-cpu/fde-field-test/tar.gz/refs/heads/main"
 SOURCE_DIR="/opt/fde-field-test"
 WEB_ROOT="/var/www/fde.onex.plus"
 NGINX_SITE="/etc/nginx/sites-available/fde.onex.plus"
@@ -26,7 +26,8 @@ fi
 archive_dir="$(mktemp -d)"
 trap 'rm -rf "$archive_dir"' EXIT
 curl --fail --silent --show-error --location \
-  --connect-timeout 15 --max-time 180 \
+  --connect-timeout 20 --max-time 240 \
+  --retry 5 --retry-delay 3 --retry-all-errors \
   "$ARCHIVE_URL" -o "$archive_dir/fde-field-test.tar.gz"
 tar -xzf "$archive_dir/fde-field-test.tar.gz" -C "$archive_dir"
 install -d -m 0755 "$SOURCE_DIR"
