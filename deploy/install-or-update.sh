@@ -2,6 +2,7 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/wayyuanbj-cpu/fde-field-test.git"
+ARCHIVE_URL="https://github.com/wayyuanbj-cpu/fde-field-test/archive/refs/heads/main.tar.gz"
 SOURCE_DIR="/opt/fde-field-test"
 WEB_ROOT="/var/www/fde.onex.plus"
 NGINX_SITE="/etc/nginx/sites-available/fde.onex.plus"
@@ -12,7 +13,7 @@ if [[ "$(id -u)" -ne 0 ]]; then
 fi
 
 missing_packages=()
-command -v git >/dev/null 2>&1 || missing_packages+=(git)
+command -v curl >/dev/null 2>&1 || missing_packages+=(curl)
 command -v rsync >/dev/null 2>&1 || missing_packages+=(rsync)
 command -v nginx >/dev/null 2>&1 || missing_packages+=(nginx)
 command -v certbot >/dev/null 2>&1 || missing_packages+=(certbot python3-certbot-nginx)
@@ -22,12 +23,14 @@ if ((${#missing_packages[@]})); then
   DEBIAN_FRONTEND=noninteractive apt-get install -y "${missing_packages[@]}"
 fi
 
-if [[ -d "$SOURCE_DIR/.git" ]]; then
-  git -C "$SOURCE_DIR" pull --ff-only origin main
-else
-  rm -rf "$SOURCE_DIR"
-  git clone --depth 1 --branch main "$REPO_URL" "$SOURCE_DIR"
-fi
+archive_dir="$(mktemp -d)"
+trap 'rm -rf "$archive_dir"' EXIT
+curl --fail --silent --show-error --location \
+  --connect-timeout 15 --max-time 180 \
+  "$ARCHIVE_URL" -o "$archive_dir/fde-field-test.tar.gz"
+tar -xzf "$archive_dir/fde-field-test.tar.gz" -C "$archive_dir"
+install -d -m 0755 "$SOURCE_DIR"
+rsync -a --delete "$archive_dir/fde-field-test-main/" "$SOURCE_DIR/"
 
 install -d -m 0755 "$WEB_ROOT"
 rsync -a --delete \
@@ -55,4 +58,4 @@ certbot --nginx \
 nginx -t
 systemctl reload nginx
 
-echo "FDE site deployed from $REPO_URL to https://fde.onex.plus/"
+echo "FDE site deployed from $REPO_URL main branch to https://fde.onex.plus/"

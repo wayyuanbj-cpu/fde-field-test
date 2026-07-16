@@ -28,7 +28,7 @@ OneX ECS 服务器通过本仓库部署：
 sudo bash deploy/install-or-update.sh
 ```
 
-脚本会拉取 `main` 分支、同步公开站点文件、校验 Nginx 配置并为 `fde.onex.plus` 申请或续用 HTTPS 证书。
+脚本会从 GitHub 下载 `main` 分支官方归档、同步公开站点文件、校验 Nginx 配置并为 `fde.onex.plus` 申请或续用 HTTPS 证书。使用归档方式是为了适配国内服务器访问 GitHub 的网络特点。
 
 ## 权利声明
 
