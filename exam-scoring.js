@@ -13,10 +13,11 @@ export function scoreQuestion(question, selected = []) {
   return 0;
 }
 
-export function classifyExamScore(score) {
-  if (score >= 85) return { status: "excellent", label: "优秀" };
-  if (score >= 70) return { status: "passed", label: "达标" };
-  return { status: "not-passed", label: "未达标" };
+export function classifyExamScore(score, bundle = activeBundle) {
+  const labels = bundle.ui.exam.classification;
+  if (score >= 85) return { status: "excellent", label: labels.excellent };
+  if (score >= 70) return { status: "passed", label: labels.passed };
+  return { status: "not-passed", label: labels["not-passed"] };
 }
 
 function shuffled(items, random) {
@@ -46,7 +47,7 @@ export function getQuestionBank(level, bundle = activeBundle) {
   return bank;
 }
 
-export function scoreExam(questions, answers = {}) {
+export function scoreExam(questions, answers = {}, bundle = activeBundle) {
   const moduleTotals = {};
   const moduleEarned = {};
   const review = [];
@@ -82,6 +83,6 @@ export function scoreExam(questions, answers = {}) {
     unanswered,
     moduleScores,
     review,
-    classification: classifyExamScore(score),
+    classification: classifyExamScore(score, bundle),
   };
 }

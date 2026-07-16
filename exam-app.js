@@ -1,4 +1,4 @@
-import { levelDefinitions, levelOrder, moduleDefinition } from "./assessment-levels.js";
+import { levelOrder } from "./assessment-levels.js";
 import { buildExam, getQuestionBank, scoreExam } from "./exam-scoring.js";
 import {
   canAccessLevel,
@@ -13,9 +13,13 @@ import { clearExamState, examStateKey, loadExamState, saveExamState } from "./ex
 import { drawExamShareCard } from "./exam-share-card.js";
 import { sanitizeShareName, shareFilename } from "./share-name.js";
 import { track } from "./analytics.js";
+import { activeBundle } from "./locales/index.js";
 
 const ACTIVE_KEY = "onex-fde-exam:active";
-const TYPE_LABELS = { single: "单选题", multiple: "多选题", judgment: "判断题" };
+const levelDefinitions = activeBundle.levels;
+const ui = activeBundle.ui.exam;
+const TYPE_LABELS = ui.typeLabels;
+const moduleDefinition = (level, moduleId) => levelDefinitions[level]?.modules.find((module) => module.id === moduleId) ?? null;
 const state = {
   level: null,
   mode: null,
@@ -58,7 +62,7 @@ function saveActivePointer() {
 function persist() {
   const target = storage();
   if (!target || !state.level || !state.mode) {
-    $("#exam-save-status").textContent = "当前浏览器未开放本地保存；请勿刷新页面";
+    $("#exam-save-status").textContent = ui.storageUnavailable;
     return;
   }
   const saved = saveExamState(target, examStateKey(state.level, state.mode), {
@@ -70,9 +74,9 @@ function persist() {
   });
   if (saved) {
     saveActivePointer();
-    $("#exam-save-status").textContent = "已自动保存到当前浏览器";
+    $("#exam-save-status").textContent = ui.storageSaved;
   } else {
-    $("#exam-save-status").textContent = "保存失败；本页仍可继续答题";
+    $("#exam-save-status").textContent = ui.storageFailed;
   }
 }
 
@@ -113,17 +117,17 @@ function renderProgression() {
     button.disabled = !accessible;
     button.setAttribute("aria-disabled", String(!accessible));
     if (record?.qualifies) {
-      badge.textContent = "已晋级";
-      lockCopy.textContent = index === levelOrder.length - 1 ? "已完成三级挑战" : "已解锁下一级";
-      bestCopy.textContent = `BEST ${record.score} · 最低模块 ${record.lowestModuleScore}`;
+      badge.textContent = ui.statusQualified;
+      lockCopy.textContent = index === levelOrder.length - 1 ? ui.pathComplete : ui.pathNextUnlocked;
+      bestCopy.textContent = ui.bestQualified(record);
     } else if (accessible) {
-      badge.textContent = index === 0 ? "必经起点" : "已解锁";
-      lockCopy.textContent = index === 0 ? "必经起点" : "前一级已晋级，现可挑战";
-      bestCopy.textContent = record ? `BEST ${record.score} · 尚未晋级` : "";
+      badge.textContent = index === 0 ? ui.statusStart : ui.statusUnlocked;
+      lockCopy.textContent = index === 0 ? ui.pathStart : ui.pathAccessible;
+      bestCopy.textContent = ui.bestPending(record);
     } else {
-      badge.textContent = "未解锁";
+      badge.textContent = ui.statusLocked;
       const previous = levelDefinitions[levelOrder[index - 1]]?.shortLabel;
-      lockCopy.textContent = `🔒 ${previous}晋级后解锁`;
+      lockCopy.textContent = ui.pathLocked(previous);
       bestCopy.textContent = "";
     }
     document.querySelector(`[data-path-level='${level}']`)?.classList.toggle("is-unlocked", accessible);
@@ -134,12 +138,12 @@ function renderProgression() {
 export function openLevelSelector(potentialScore = null, returnView = "landing-view") {
   state.potentialScore = Number.isFinite(potentialScore) ? potentialScore : null;
   state.returnView = returnView;
-  $("#level-back-button").textContent = returnView === "result-view" ? "← 返回我的结果" : "← 返回首页";
+  $("#level-back-button").textContent = returnView === "result-view" ? ui.backResult : ui.backHome;
   renderProgression();
   if (state.progressionIssue) {
-    showProgressionNotice("晋级规则已升级，旧的中高级进度不作为晋级证据。");
+    showProgressionNotice(ui.progressionUpgraded);
   } else if (Number.isFinite(state.potentialScore)) {
-    showProgressionNotice("快速测试只生成能力侧写，所有人都需从初级开始晋级。");
+    showProgressionNotice(ui.quickProfileOnly);
   } else {
     showProgressionNotice("");
   }
@@ -150,8 +154,8 @@ function renderMode(level) {
   if (!canAccessLevel(state.progression, level)) {
     openLevelSelector(state.potentialScore, state.returnView);
     const index = levelOrder.indexOf(level);
-    const previous = levelDefinitions[levelOrder[index - 1]]?.shortLabel ?? "前一级";
-    showProgressionNotice(`不能跳级。请先完成${previous}完整挑战并达到晋级标准。`);
+    const previous = levelDefinitions[levelOrder[index - 1]]?.shortLabel ?? ui.previousLevel;
+    showProgressionNotice(ui.noSkipping(previous));
     return;
   }
   const definition = levelDefinitions[level];
@@ -159,10 +163,10 @@ function renderMode(level) {
   $("#mode-level-code").innerHTML = `<span>${definition.code}</span><span>MODE SELECT</span>`;
   $("#mode-title").textContent = definition.title;
   $("#mode-description").textContent = definition.description;
-  $("#full-count").textContent = `${definition.fullCount} 题`;
-  $("#mock-count").textContent = `${definition.mockCount} 题`;
-  $("#full-time").textContent = `建议 ${definition.fullTime}`;
-  $("#mock-time").textContent = `建议 ${definition.mockTime}`;
+  $("#full-count").textContent = ui.questionCount(definition.fullCount);
+  $("#mock-count").textContent = ui.questionCount(definition.mockCount);
+  $("#full-time").textContent = ui.suggestedTime(definition.fullTime);
+  $("#mock-time").textContent = ui.suggestedTime(definition.mockTime);
   $("#mode-modules").replaceChildren(...definition.modules.map((module) => {
     const row = document.createElement("div");
     row.className = "mode-module";
@@ -177,13 +181,12 @@ function renderMode(level) {
   if (state.resume) {
     const saved = state.resume.loaded.state;
     const answered = Object.values(saved.answers).filter((answer) => Array.isArray(answer) && answer.length).length;
-    $("#resume-copy").textContent = `${state.resume.mode === "full" ? "完整挑战" : "随机模拟"} · 已答 ${answered}/${saved.questionIds.length}`;
+    $("#resume-copy").textContent = ui.resume(state.resume.mode, answered, saved.questionIds.length);
   }
   const warning = $("#progress-warning");
   warning.hidden = !state.progressIssue;
   if (state.progressIssue) {
-    const reasonCopy = state.progressIssue.loaded.reason === "version" ? "旧版" : "损坏";
-    $("#progress-warning-copy").textContent = `检测到${reasonCopy}进度，旧进度无法恢复。清除后即可重新开始。`;
+    $("#progress-warning-copy").textContent = ui.progressIssue(state.progressIssue.loaded.reason);
   }
   showView("mode-view");
 }
@@ -214,7 +217,7 @@ function startExam(mode, restoredState = null) {
 function renderExamShell() {
   const definition = levelDefinitions[state.level];
   $("#exam-level-code").textContent = definition.code;
-  $("#exam-mode-label").textContent = state.mode === "full" ? "完整挑战" : "随机模拟";
+  $("#exam-mode-label").textContent = ui.modeLabel(state.mode);
   $("#exam-total").textContent = String(state.questions.length);
   const grid = $("#exam-number-grid");
   grid.replaceChildren(...state.questions.map((question, index) => {
@@ -223,7 +226,7 @@ function renderExamShell() {
     button.dataset.examAction = "go-question";
     button.dataset.index = String(index);
     button.textContent = String(index + 1).padStart(2, "0");
-    button.setAttribute("aria-label", `第 ${index + 1} 题`);
+    button.setAttribute("aria-label", ui.questionAria(index + 1));
     return button;
   }));
   renderNavigator();
@@ -290,7 +293,7 @@ function renderQuestion() {
   const controls = $(".exam-controls").querySelectorAll("button");
   controls[0].disabled = state.currentIndex === 0;
   controls[2].disabled = state.currentIndex === state.questions.length - 1;
-  $("#exam-save-status").textContent = "答案自动保存在当前浏览器";
+  $("#exam-save-status").textContent = ui.autosave;
   renderNavigator();
   document.documentElement.style.setProperty("--active-level-accent", definition.accent);
 }
@@ -307,19 +310,17 @@ function goQuestion(index) {
 function requestSubmit() {
   const unanswered = state.questions.filter((question) => !(state.answers[question.id]?.length)).length;
   const baseCopy = unanswered
-    ? `你还有 ${unanswered} 道题未作答，未答题将按 0 分计算。`
-    : "所有题目都已作答，交卷后将生成分模块成绩与错题解析。";
+    ? ui.submitUnanswered(unanswered)
+    : ui.submitComplete;
   const multipleReminder = state.questions[state.currentIndex]?.type === "multiple"
-    ? " 本题为多选题：少选、多选、错选均不得分。"
+    ? ui.multipleReminder
     : "";
   $("#submit-copy").textContent = `${baseCopy}${multipleReminder}`;
   $("#submit-panel").hidden = false;
 }
 
 function trainingCopy(definition, weakModule, score) {
-  if (score >= 85) return `你已在本级题目中表现优秀。下一步用真实项目证据验证“${weakModule.label}”，不要停在答题分数。`;
-  if (score >= 70) return `你已达到本级线上题目的基准线。优先补强“${weakModule.label}”，再进入更高等级或实战评审。`;
-  return `当前最值得训练的是“${weakModule.label}”。回到教材和真实案例，先补齐判断依据，再重新挑战。`;
+  return ui.training(weakModule.label, score);
 }
 
 function renderResult() {
@@ -328,7 +329,7 @@ function renderResult() {
   $("#exam-result-code").innerHTML = `<span>${definition.code}</span><span>ASSESSMENT COMPLETE</span>`;
   $("#exam-result-status").textContent = `${definition.resultNoun}${result.classification.label}`;
   $("#exam-result-score").textContent = String(result.score).padStart(2, "0");
-  $("#exam-result-mode").textContent = `${state.mode === "full" ? "完整挑战" : "随机模拟"} · ${state.questions.length} 题`;
+  $("#exam-result-mode").textContent = ui.resultMode(state.mode, state.questions.length);
   const qualification = state.qualification ?? evaluateQualification(state.mode, result);
   const followingLevel = qualification.qualifies ? nextLevel(state.level) : null;
   const status = $("#qualification-status");
@@ -338,26 +339,24 @@ function renderResult() {
   const identityPanel = $("#final-share-identity");
   const shareButton = $("#share-result-button");
   nextButton.hidden = !followingLevel;
-  if (followingLevel) nextButton.textContent = `进入${levelDefinitions[followingLevel].shortLabel}`;
+  if (followingLevel) nextButton.textContent = ui.nextLevel(levelDefinitions[followingLevel].shortLabel);
   identityPanel.hidden = !finalQualified;
-  shareButton.textContent = finalQualified ? "生成三级挑战分享卡" : "生成等级成绩卡";
+  shareButton.textContent = finalQualified ? ui.finalShareButton : ui.levelShareButton;
   if (!finalQualified) $("#final-share-name").value = "";
   if (state.mode === "mock") {
-    status.textContent = "模拟练习";
-    reason.textContent = "模拟成绩只用于练习，不记录等级成就，不解锁下一级。";
+    status.textContent = ui.mockStatus;
+    reason.textContent = ui.mockReason;
   } else if (qualification.qualifies) {
-    status.textContent = state.level === "advanced" ? "三级挑战完成" : "晋级成功";
-    reason.textContent = followingLevel
-      ? `${levelDefinitions[followingLevel].shortLabel}已解锁。你已同时达到总分 85 和全模块 70 的晋级标准。`
-      : "你已完成全部 200 道三级挑战题，并满足高级晋级标准。";
+    status.textContent = ui.qualifiedStatus(state.level);
+    reason.textContent = ui.qualifiedReason(followingLevel ? levelDefinitions[followingLevel].shortLabel : null);
   } else if (result.score >= 70) {
-    status.textContent = "本级达标，未晋级";
+    status.textContent = ui.passedStatus;
     reason.textContent = qualification.reason === "module"
-      ? `总分已达晋级线，但最低模块仅 ${qualification.lowestModuleScore} 分；每个模块须不低于 70。`
-      : `当前 ${result.score} 分已达本级基准，晋级需要总分不低于 85，且每模块不低于 70。`;
+      ? ui.moduleFloorReason(qualification.lowestModuleScore)
+      : ui.advanceScoreReason(result.score);
   } else {
-    status.textContent = "未达标";
-    reason.textContent = `当前 ${result.score} 分，本级达标线为 70，晋级线为 85。`;
+    status.textContent = ui.failedStatus;
+    reason.textContent = ui.failedReason(result.score);
   }
   $("#stat-correct").textContent = result.correct;
   $("#stat-partial").textContent = result.partial;
@@ -367,7 +366,7 @@ function renderResult() {
   const moduleValues = definition.modules.map((module) => ({ module, score: result.moduleScores[module.id] ?? 0 }));
   const strongest = [...moduleValues].sort((a, b) => b.score - a.score)[0];
   const weakest = [...moduleValues].sort((a, b) => a.score - b.score)[0];
-  $("#result-strong-module").textContent = `${strongest.module.label} · ${strongest.score} 分`;
+  $("#result-strong-module").textContent = ui.moduleScore(strongest.module.label, strongest.score);
   $("#result-weak-module").textContent = trainingCopy(definition, weakest.module, result.score);
   $("#module-results").replaceChildren(...moduleValues.map(({ module, score }) => {
     const row = document.createElement("div");
@@ -377,14 +376,14 @@ function renderResult() {
   }));
 
   const filter = $("#review-filter");
-  filter.replaceChildren(new Option("全部模块", "all"), ...definition.modules.map((module) => new Option(module.label, module.id)));
+  filter.replaceChildren(new Option(ui.allModules, "all"), ...definition.modules.map((module) => new Option(module.label, module.id)));
   renderReview("all");
   $("#exam-share-panel").hidden = true;
   showView("exam-result-view");
 }
 
 function answerText(question, selected) {
-  if (!selected.length) return "未作答";
+  if (!selected.length) return ui.unanswered;
   return selected.map((index) => `${String.fromCharCode(65 + index)}. ${question.options[index]}`).join("；");
 }
 
@@ -397,7 +396,7 @@ function renderReview(moduleId, resetLimit = true) {
   if (!entries.length) {
     const empty = document.createElement("p");
     empty.className = "review-empty";
-    empty.textContent = moduleId === "all" ? "本次没有错题。接下来请用真实项目验证能力。" : "该模块没有错题。";
+    empty.textContent = moduleId === "all" ? ui.noWrongAll : ui.noWrongModule;
     list.replaceChildren(empty);
     return;
   }
@@ -409,7 +408,7 @@ function renderReview(moduleId, resetLimit = true) {
     article.className = "review-item";
     article.dataset.module = question.module;
     article.innerHTML = `
-      <header><span>${question.id} · ${module?.label ?? question.module}</span><b>${entry.points === 0.5 ? "部分正确" : entry.selected.length ? "错误" : "未作答"}</b></header>
+      <header><span>${question.id} · ${module?.label ?? question.module}</span><b>${ui.reviewStatus(entry.points, entry.selected)}</b></header>
       ${question.context ? `<p class="review-context"></p>` : ""}
       <h3></h3>
       <div class="review-answers"><div><span>YOUR ANSWER</span><strong class="user-answer"></strong></div><div><span>REFERENCE</span><strong class="reference-answer"></strong></div></div>
@@ -427,7 +426,7 @@ function renderReview(moduleId, resetLimit = true) {
     more.type = "button";
     more.className = "review-more";
     more.dataset.examAction = "load-more-review";
-    more.textContent = `继续查看剩余 ${remaining} 题`;
+    more.textContent = ui.moreReview(remaining);
     items.push(more);
   }
   list.replaceChildren(...items);
@@ -493,16 +492,16 @@ function shareResult() {
   canvas.hidden = false;
   try {
     const final = state.level === "advanced" && state.mode === "full" && state.qualification?.qualifies === true;
-    const name = sanitizeShareName(final ? $("#final-share-name").value : "");
+    const name = sanitizeShareName(final ? $("#final-share-name").value : "", ui.anonymousName);
     const scores = Object.fromEntries(levelOrder.map((level) => [level, state.progression.records[level]?.score]));
-    drawExamShareCard(canvas, state.result, levelDefinitions[state.level], { final, name, scores });
+    drawExamShareCard(canvas, state.result, levelDefinitions[state.level], { final, name, scores, bundle: activeBundle, mode: state.mode });
     track("share_generate", { level: state.level, mode: state.mode });
     status.textContent = final
-      ? `三级挑战分享卡已生成，展示名为“${name}”。姓名不会上传或保存。`
-      : "成绩卡已生成，可保存 PNG 分享。";
+      ? ui.finalShareSuccess(name)
+      : ui.levelShareSuccess;
   } catch {
     canvas.hidden = true;
-    status.textContent = "成绩卡生成失败，成绩不受影响，请重试。";
+    status.textContent = ui.shareFailed;
   }
   panel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -511,8 +510,8 @@ function downloadResultCard() {
   const link = document.createElement("a");
   const final = state.level === "advanced" && state.mode === "full" && state.qualification?.qualifies === true;
   link.download = final
-    ? shareFilename($("#final-share-name").value)
-    : `FDE-${levelDefinitions[state.level].resultNoun}-成绩.png`;
+    ? shareFilename($("#final-share-name").value, { fallback: ui.anonymousName, prefix: ui.finalFilenamePrefix })
+    : ui.resultFilename(levelDefinitions[state.level].resultNoun);
   link.href = $("#exam-share-canvas").toDataURL("image/png");
   link.click();
 }
@@ -555,8 +554,8 @@ document.addEventListener("click", (event) => {
       const level = target.dataset.level;
       if (!canAccessLevel(state.progression, level)) {
         const index = levelOrder.indexOf(level);
-        const previous = levelDefinitions[levelOrder[index - 1]]?.shortLabel ?? "前一级";
-        showProgressionNotice(`不能跳级。请先完成${previous}完整挑战并达到晋级标准。`);
+        const previous = levelDefinitions[levelOrder[index - 1]]?.shortLabel ?? ui.previousLevel;
+        showProgressionNotice(ui.noSkipping(previous));
         return;
       }
       renderMode(level);

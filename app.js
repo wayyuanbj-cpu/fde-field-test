@@ -1,8 +1,12 @@
-import { dimensionMeta, questions } from "./question-data.js";
 import { scoreAssessment } from "./scoring.js";
 import { drawShareCard } from "./share-card.js";
 import { openLevelSelector } from "./exam-app.js";
 import { track } from "./analytics.js";
+import { activeBundle } from "./locales/index.js";
+import { readLocaleHandoff, writeLocaleHandoff } from "./locale-handoff.js";
+
+const { dimensionMeta, questions } = activeBundle.quick;
+const copy = activeBundle.ui.quick;
 
 const views = [...document.querySelectorAll(".view")];
 const state = { current: 0, answers: {}, result: null, previousView: "landing-view" };
@@ -39,7 +43,7 @@ function renderQuestion() {
   elements.title.textContent = question.prompt;
   elements.error.textContent = "";
   elements.previous.disabled = state.current === 0;
-  elements.next.textContent = state.current === questions.length - 1 ? "生成结果 →" : "锁定判断 →";
+  elements.next.textContent = state.current === questions.length - 1 ? copy.nextResult : copy.lockDecision;
   elements.options.replaceChildren();
 
   question.options.forEach((option, index) => {
@@ -83,7 +87,7 @@ function startAssessment(reset = false) {
 function nextQuestion() {
   const question = questions[state.current];
   if (!Number.isInteger(state.answers[question.id])) {
-    elements.error.textContent = "先做出判断，再进入下一题。";
+    elements.error.textContent = copy.required;
     elements.options.querySelector("input")?.focus();
     return;
   }
@@ -92,7 +96,7 @@ function nextQuestion() {
     renderQuestion();
     return;
   }
-  state.result = scoreAssessment(state.answers, questions);
+  state.result = scoreAssessment(state.answers, questions, activeBundle.quick);
   track("quick_complete", { score: state.result.index });
   renderResult();
 }
@@ -160,12 +164,12 @@ function drawRadar(canvas, dimensions) {
 function renderResult() {
   const { result } = state;
   showView("result-view");
-  document.querySelector("#result-level").textContent = `能力侧写 · ${result.level.label}`;
+  document.querySelector("#result-level").textContent = `${copy.profilePrefix} · ${result.level.label}`;
   document.querySelector("#result-verdict").textContent = result.level.verdict;
   document.querySelector("#result-score").textContent = pad(result.index);
   document.querySelector("#result-strength").textContent = result.strength;
-  document.querySelector("#exposure-title").textContent = result.hasMaterialGap ? "最容易露馅的地方" : "压力测试结论";
-  document.querySelector("#result-exposure").textContent = result.exposure.replace(/^最容易露馅的地方：[^。]+。/, "");
+  document.querySelector("#exposure-title").textContent = copy.exposureTitle(result.hasMaterialGap);
+  document.querySelector("#result-exposure").textContent = copy.exposureBody(result.exposure);
   document.querySelector("#result-training").textContent = result.training;
   const circumference = 2 * Math.PI * 92;
   const dial = document.querySelector("#dial-progress");
@@ -185,7 +189,7 @@ function renderResult() {
 function showShareCard() {
   const panel = document.querySelector("#share-panel");
   panel.hidden = false;
-  drawShareCard(document.querySelector("#share-canvas"), state.result);
+  drawShareCard(document.querySelector("#share-canvas"), state.result, activeBundle);
   track("share_generate");
   panel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -193,7 +197,7 @@ function showShareCard() {
 function downloadCard() {
   const canvas = document.querySelector("#share-canvas");
   const link = document.createElement("a");
-  link.download = "FDE-潜质测试结果.png";
+  link.download = copy.filename;
   link.href = canvas.toDataURL("image/png");
   link.click();
 }
@@ -217,6 +221,16 @@ document.addEventListener("click", (event) => {
   actions[action]?.();
 });
 
+document.querySelector("[data-locale-switch]")?.addEventListener("click", () => {
+  const visible = views.find((view) => !view.hidden)?.id;
+  if (!["quiz-view", "result-view"].includes(visible)) return;
+  writeLocaleHandoff(globalThis.sessionStorage, {
+    view: visible,
+    current: state.current,
+    answers: state.answers,
+  });
+});
+
 document.addEventListener("keydown", (event) => {
   if (document.querySelector("#quiz-view").hidden) return;
   const numeric = Number(event.key);
@@ -234,3 +248,16 @@ window.addEventListener("resize", () => {
 });
 
 track("page_view");
+
+const handoff = readLocaleHandoff(globalThis.sessionStorage, questions);
+if (handoff) {
+  state.current = handoff.current;
+  state.answers = handoff.answers;
+  if (handoff.view === "result-view" && Object.keys(state.answers).length === questions.length) {
+    state.result = scoreAssessment(state.answers, questions, activeBundle.quick);
+    renderResult();
+  } else {
+    showView("quiz-view", false);
+    renderQuestion();
+  }
+}

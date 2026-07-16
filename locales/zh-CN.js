@@ -3,6 +3,7 @@ import { advancedQuestions } from "../advanced-question-data.js";
 import { intermediateQuestions } from "../intermediate-question-data.js";
 import { juniorQuestions } from "../professional-question-data.js";
 import { dimensionMeta, questions } from "../question-data.js";
+import { zhCNExamShare, zhCNQuickShare, zhCNUI } from "./zh-CN-ui.js";
 
 const levels = Object.freeze([
   Object.freeze({
@@ -59,7 +60,7 @@ const copy = Object.freeze({
 export const zhCN = Object.freeze({
   locale: "zh-CN",
   htmlLang: "zh-CN",
-  ui: Object.freeze({}),
+  ui: zhCNUI,
   quick: Object.freeze({ dimensionMeta, questions, levels, adviceByDimension, copy }),
   levels: levelDefinitions,
   questionBanks: Object.freeze({
@@ -67,6 +68,6 @@ export const zhCN = Object.freeze({
     intermediate: intermediateQuestions,
     advanced: advancedQuestions,
   }),
-  quickShare: Object.freeze({}),
-  examShare: Object.freeze({}),
+  quickShare: zhCNQuickShare,
+  examShare: zhCNExamShare,
 });

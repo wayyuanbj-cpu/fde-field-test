@@ -1,7 +1,9 @@
-function fitText(context, text, maxWidth, startSize, minimum = 34) {
+import { activeBundle } from "./locales/index.js";
+
+function fitText(context, text, maxWidth, startSize, minimum = 34, font = '"PingFang SC", "Microsoft YaHei", sans-serif') {
   let size = startSize;
   while (size > minimum) {
-    context.font = `760 ${size}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+    context.font = `760 ${size}px ${font}`;
     if (context.measureText(text).width <= maxWidth) break;
     size -= 2;
   }
@@ -10,11 +12,13 @@ function fitText(context, text, maxWidth, startSize, minimum = 34) {
 
 function drawFinalShareCard(context, canvas, result, definition, options) {
   const { width, height } = canvas;
+  const bundle = options.bundle ?? activeBundle;
+  const copy = bundle.examShare;
   const scores = options.scores ?? {};
   const levelScores = [
-    ["L1 / 初级", scores.junior ?? "--"],
-    ["L2 / 中级", scores.intermediate ?? "--"],
-    ["L3 / 高级", scores.advanced ?? result.score],
+    [copy.levelScores[0], scores.junior ?? "--"],
+    [copy.levelScores[1], scores.intermediate ?? "--"],
+    [copy.levelScores[2], scores.advanced ?? result.score],
   ];
 
   const gradient = context.createLinearGradient(0, 0, width, height);
@@ -39,35 +43,35 @@ function drawFinalShareCard(context, canvas, result, definition, options) {
 
   context.fillStyle = "#7394ff";
   context.font = "22px SFMono-Regular, Consolas, monospace";
-  context.fillText("FDE FIELD TEST / THREE-LEVEL CHALLENGE", 80, 90);
+  context.fillText(copy.finalHeader, 80, 90);
   context.fillStyle = "#92a4b8";
   context.font = "18px SFMono-Regular, Consolas, monospace";
-  context.fillText("200 QUESTIONS · SEQUENTIAL PROGRESSION", 80, 130);
+  context.fillText(copy.finalSubhead, 80, 130);
 
   context.fillStyle = "#f4f7fb";
-  context.font = "760 72px \"PingFang SC\", \"Microsoft YaHei\", sans-serif";
-  context.fillText("三级挑战完成", 78, 258);
+  context.font = `760 72px ${copy.font}`;
+  context.fillText(copy.finalTitle, 78, 258);
 
   context.fillStyle = "#92a4b8";
   context.font = "18px SFMono-Regular, Consolas, monospace";
-  context.fillText("CHALLENGER", 82, 350);
+  context.fillText(copy.challenger, 82, 350);
   context.fillStyle = "#f4f7fb";
-  const nameSize = fitText(context, options.name, 900, 86, 42);
-  context.font = `760 ${nameSize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+  const nameSize = fitText(context, options.name, 900, 86, 42, copy.font);
+  context.font = `760 ${nameSize}px ${copy.font}`;
   context.fillText(options.name, 78, 438);
 
   context.fillStyle = "rgba(146,164,184,.18)";
   context.fillRect(80, 510, 920, 1);
   context.fillStyle = "#92a4b8";
   context.font = "18px SFMono-Regular, Consolas, monospace";
-  context.fillText("BEST SCORE BY LEVEL", 82, 566);
+  context.fillText(copy.scoreHeading, 82, 566);
 
   levelScores.forEach(([label, value], index) => {
     const x = 82 + index * 310;
     context.fillStyle = index === 2 ? definition.accent : "#7394ff";
     context.fillRect(x, 620, 264, 5);
     context.fillStyle = "#dbe5f1";
-    context.font = "600 22px \"PingFang SC\", sans-serif";
+    context.font = `600 22px ${copy.font}`;
     context.fillText(label, x, 680);
     context.fillStyle = "#f4f7fb";
     context.font = "760 112px SFMono-Regular, Consolas, monospace";
@@ -83,26 +87,26 @@ function drawFinalShareCard(context, canvas, result, definition, options) {
   context.strokeRect(80, 880, 920, 178);
   context.fillStyle = "#7394ff";
   context.font = "18px SFMono-Regular, Consolas, monospace";
-  context.fillText("PROGRESSION STANDARD", 112, 928);
+  context.fillText(copy.standardHeading, 112, 928);
   context.fillStyle = "#f4f7fb";
-  context.font = "700 27px \"PingFang SC\", sans-serif";
-  context.fillText("完整挑战 ≥ 85 · 每模块 ≥ 70 · 不可跳级", 112, 987);
+  context.font = `700 27px ${copy.font}`;
+  context.fillText(copy.standard, 112, 987);
   context.fillStyle = "#aebdce";
-  context.font = "17px \"PingFang SC\", sans-serif";
-  context.fillText("从初级到高级，已完成全部 200 道传播型能力挑战。", 112, 1028);
+  context.font = `17px ${copy.font}`;
+  context.fillText(copy.completed, 112, 1028);
 
   context.fillStyle = "rgba(255,90,31,.85)";
   context.fillRect(80, 1138, 44, 5);
   context.fillStyle = "#dbe5f1";
-  context.font = "700 20px \"PingFang SC\", sans-serif";
-  context.fillText("基于 OneX FDE 考核培训体系", 80, 1184);
+  context.font = `700 20px ${copy.font}`;
+  context.fillText(copy.framework, 80, 1184);
   context.fillStyle = "#92a4b8";
-  context.font = "17px \"PingFang SC\", sans-serif";
-  context.fillText("本结果来自传播型 FDE 能力挑战，", 80, 1244);
-  context.fillText("不代表正式毕业、认证或真实项目能力结论。", 80, 1280);
+  context.font = `17px ${copy.font}`;
+  context.fillText(copy.boundary[0], 80, 1244);
+  context.fillText(copy.boundary[1], 80, 1280);
   context.fillStyle = "#7394ff";
   context.font = "17px SFMono-Regular, Consolas, monospace";
-  context.fillText("版权所有 © 2026 OneX AI 社区", 80, 1354);
+  context.fillText(copy.copyright, 80, 1354);
   context.textAlign = "right";
   context.fillStyle = "#92a4b8";
   context.fillText("fde.onex.plus", 1000, 1354);
@@ -111,6 +115,8 @@ function drawFinalShareCard(context, canvas, result, definition, options) {
 
 export function drawExamShareCard(canvas, result, definition, options = {}) {
   const context = canvas.getContext("2d");
+  const bundle = options.bundle ?? activeBundle;
+  const copy = bundle.examShare;
   const { width, height } = canvas;
   context.clearRect(0, 0, width, height);
 
@@ -141,10 +147,10 @@ export function drawExamShareCard(canvas, result, definition, options = {}) {
 
   context.fillStyle = "#7394ff";
   context.font = "22px SFMono-Regular, Consolas, monospace";
-  context.fillText("FDE FIELD TEST / LEVEL ASSESSMENT", 82, 88);
+  context.fillText(copy.levelHeader, 82, 88);
   context.fillStyle = "#92a4b8";
   context.font = "18px SFMono-Regular, Consolas, monospace";
-  context.fillText(`${definition.code} · ${result.mode === "full" ? "FULL CHALLENGE" : "RANDOM MOCK"}`, 82, 127);
+  context.fillText(`${definition.code} · ${options.mode === "full" ? copy.fullMode : copy.mockMode}`, 82, 127);
 
   context.textAlign = "right";
   context.fillStyle = definition.accent;
@@ -153,13 +159,13 @@ export function drawExamShareCard(canvas, result, definition, options = {}) {
   context.textAlign = "left";
 
   context.fillStyle = "#f4f7fb";
-  const titleSize = fitText(context, definition.title, 850, 82);
-  context.font = `760 ${titleSize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+  const titleSize = fitText(context, definition.title, 850, 82, 34, copy.font);
+  context.font = `760 ${titleSize}px ${copy.font}`;
   context.fillText(definition.title, 78, 300);
 
   context.fillStyle = "#92a4b8";
   context.font = "18px SFMono-Regular, Consolas, monospace";
-  context.fillText("ASSESSMENT SCORE", 82, 392);
+  context.fillText(copy.assessmentScore, 82, 392);
   context.fillStyle = "#f4f7fb";
   context.font = "760 250px SFMono-Regular, Consolas, monospace";
   context.fillText(String(result.score).padStart(2, "0"), 62, 650);
@@ -171,13 +177,13 @@ export function drawExamShareCard(canvas, result, definition, options = {}) {
   context.fillRect(80, 750, 920, 1);
   context.fillStyle = "#92a4b8";
   context.font = "18px SFMono-Regular, Consolas, monospace";
-  context.fillText("MODULE PROFILE", 82, 805);
+  context.fillText(copy.moduleProfile, 82, 805);
 
   definition.modules.forEach((module, index) => {
     const value = result.moduleScores[module.id] ?? 0;
     const y = 862 + index * 72;
     context.fillStyle = "#dbe5f1";
-    context.font = "600 19px \"PingFang SC\", sans-serif";
+    context.font = `600 19px ${copy.font}`;
     context.fillText(module.short, 82, y);
     context.fillStyle = "rgba(146,164,184,.2)";
     context.fillRect(280, y - 18, 600, 14);
@@ -191,12 +197,12 @@ export function drawExamShareCard(canvas, result, definition, options = {}) {
   context.fillStyle = "rgba(255,90,31,.85)";
   context.fillRect(80, 1280, 44, 5);
   context.fillStyle = "#dbe5f1";
-  context.font = "700 20px \"PingFang SC\", sans-serif";
-  context.fillText("基于 OneX FDE 考核培训体系", 80, 1326);
+  context.font = `700 20px ${copy.font}`;
+  context.fillText(copy.framework, 80, 1326);
   context.fillStyle = "#92a4b8";
-  context.font = "17px \"PingFang SC\", sans-serif";
-  context.fillText("版权所有 © 2026 OneX AI 社区", 80, 1361);
+  context.font = `17px ${copy.font}`;
+  context.fillText(copy.copyright, 80, 1361);
   context.textAlign = "right";
-  context.fillText("线上测评结果不等于完整 FDE 能力认证", 1000, 1361);
+  context.fillText(copy.onlineBoundary, 1000, 1361);
   context.textAlign = "left";
 }

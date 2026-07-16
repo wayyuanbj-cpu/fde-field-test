@@ -2,6 +2,7 @@ import { advancedQuestions } from "./en-US/advanced-question-data.js";
 import { intermediateQuestions } from "./en-US/intermediate-question-data.js";
 import { juniorQuestions } from "./en-US/junior-question-data.js";
 import { dimensionMeta, questions } from "./en-US/quick-question-data.js";
+import { enUSExamShare, enUSQuickShare, enUSUI } from "./en-US/ui.js";
 
 const levels = Object.freeze([
   Object.freeze({ key: "concept-observer", min: 0, label: "Concept Observer", verdict: "You can follow the AI conversation, but you do not yet have a reliable framework for enterprise delivery." }),
@@ -82,10 +83,10 @@ const englishLevelDefinitions = Object.freeze({
 export const enUS = Object.freeze({
   locale: "en-US",
   htmlLang: "en",
-  ui: Object.freeze({}),
+  ui: enUSUI,
   quick: Object.freeze({ dimensionMeta, questions, levels, adviceByDimension, copy }),
   levels: englishLevelDefinitions,
   questionBanks: Object.freeze({ junior: juniorQuestions, intermediate: intermediateQuestions, advanced: advancedQuestions }),
-  quickShare: Object.freeze({}),
-  examShare: Object.freeze({}),
+  quickShare: enUSQuickShare,
+  examShare: enUSExamShare,
 });

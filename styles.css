@@ -32,6 +32,9 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .brand-lockup { display: grid; gap: 3px; }
 .brand-lockup strong { font-family: var(--mono); letter-spacing: .1em; font-size: 13px; }
 .brand-lockup small { color: var(--steel); font-size: 10px; letter-spacing: .08em; }
+.header-tools { display: flex; align-items: center; gap: 18px; }
+.locale-switch { min-width: 38px; height: 30px; padding: 0 9px; display: inline-grid; place-items: center; border: 1px solid rgba(115, 148, 255, .38); color: var(--cobalt-soft); text-decoration: none; font: 700 10px/1 var(--mono); letter-spacing: .1em; transition: color .18s ease, border-color .18s ease, background .18s ease; }
+.locale-switch:hover { color: var(--white); border-color: var(--cobalt-soft); background: rgba(41, 98, 255, .13); }
 .header-status { display: flex; align-items: center; gap: 9px; color: var(--steel); font: 10px/1 var(--mono); letter-spacing: .1em; }
 .status-light { width: 7px; height: 7px; border-radius: 50%; background: #69e7a2; box-shadow: 0 0 0 4px rgba(105, 231, 162, .1); }
 
@@ -196,6 +199,7 @@ footer { min-height: 62px; padding: 0 clamp(20px, 4vw, 64px); display: flex; ali
   .site-header { min-height: 66px; }
   .brand img { width: 34px; height: 34px; }
   .brand-lockup small, .header-status span:last-child { display: none; }
+  .header-tools { gap: 12px; }
   .hero-grid { min-height: auto; grid-template-columns: 1fr; gap: 0; }
   .hero-copy { padding: 58px 0 20px; }
   .eyebrow { align-items: flex-start; flex-direction: column; gap: 9px; }

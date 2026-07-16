@@ -1,18 +1,19 @@
 const ANONYMOUS_NAME = "匿名挑战者";
 
-export function sanitizeShareName(value) {
+export function sanitizeShareName(value, fallback = ANONYMOUS_NAME) {
   const cleaned = String(value ?? "")
     .normalize("NFC")
     .replace(/\p{Cc}/gu, "")
     .trim();
   const limited = Array.from(cleaned).slice(0, 20).join("");
-  return limited || ANONYMOUS_NAME;
+  return limited || fallback;
 }
 
-export function shareFilename(value) {
-  const safe = sanitizeShareName(value)
+export function shareFilename(value, options = {}) {
+  const fallback = options.fallback ?? ANONYMOUS_NAME;
+  const safe = sanitizeShareName(value, fallback)
     .replace(/[\\/:*?"<>|]/g, "")
     .replace(/^\.+/, "")
-    .trim() || ANONYMOUS_NAME;
-  return `FDE-三级挑战-${safe}.png`;
+    .trim() || fallback;
+  return `${options.prefix ?? "FDE-三级挑战"}-${safe}.png`;
 }

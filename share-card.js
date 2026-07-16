@@ -1,4 +1,4 @@
-import { dimensionMeta } from "./question-data.js";
+import { activeBundle } from "./locales/index.js";
 
 function polygonPoint(cx, cy, radius, index, count) {
   const angle = -Math.PI / 2 + (Math.PI * 2 * index) / count;
@@ -15,8 +15,10 @@ function fitText(context, text, maxWidth, startSize, weight = 700) {
   return size;
 }
 
-export function drawShareCard(canvas, result) {
+export function drawShareCard(canvas, result, bundle = activeBundle) {
   const context = canvas.getContext("2d");
+  const copy = bundle.quickShare;
+  const { dimensionMeta } = bundle.quick;
   const { width, height } = canvas;
   context.clearRect(0, 0, width, height);
 
@@ -42,10 +44,10 @@ export function drawShareCard(canvas, result) {
 
   context.fillStyle = "#7394ff";
   context.font = "24px SFMono-Regular, Consolas, monospace";
-  context.fillText("FDE FIELD TEST / QUICK CALIBRATION", 80, 92);
+  context.fillText(copy.header, 80, 92);
   context.fillStyle = "#92a4b8";
   context.font = "18px SFMono-Regular, Consolas, monospace";
-  context.fillText("潜质判断 · 尚未验证", 80, 132);
+  context.fillText(copy.evidence, 80, 132);
 
   context.save();
   context.translate(840, 150);
@@ -65,7 +67,7 @@ export function drawShareCard(canvas, result) {
 
   context.fillStyle = "#92a4b8";
   context.font = "20px SFMono-Regular, Consolas, monospace";
-  context.fillText("MY FDE LEVEL", 80, 270);
+  context.fillText(copy.levelLabel, 80, 270);
   const titleSize = fitText(context, result.level.label, 850, 112);
   context.fillStyle = "#f4f7fb";
   context.font = `780 ${titleSize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
@@ -76,7 +78,7 @@ export function drawShareCard(canvas, result) {
   context.fillText(String(result.index).padStart(2, "0"), 64, 638);
   context.fillStyle = "#7394ff";
   context.font = "24px SFMono-Regular, Consolas, monospace";
-  context.fillText("/ 100  FDE POTENTIAL INDEX", 480, 610);
+  context.fillText(copy.indexLabel, 480, 610);
 
   const centerX = 540;
   const centerY = 940;
@@ -107,7 +109,7 @@ export function drawShareCard(canvas, result) {
 
   context.textAlign = "center";
   context.fillStyle = "#f4f7fb";
-  context.font = "700 24px \"PingFang SC\", sans-serif";
+  context.font = `700 24px ${copy.font}`;
   labels.forEach((label, index) => {
     const [x, y] = polygonPoint(centerX, centerY, maxRadius + 50, index, labels.length);
     context.fillText(`${label} ${values[index]}`, x, y + 8);
@@ -117,12 +119,12 @@ export function drawShareCard(canvas, result) {
   context.fillStyle = "#ff5a1f";
   context.fillRect(80, 1268, 46, 5);
   context.fillStyle = "#92a4b8";
-  context.font = "18px \"PingFang SC\", sans-serif";
-  context.fillText("会用 AI，不等于能做 FDE。", 80, 1308);
+  context.font = `18px ${copy.font}`;
+  context.fillText(copy.deck, 80, 1308);
   context.fillStyle = "#f4f7fb";
-  context.font = "700 18px \"PingFang SC\", sans-serif";
-  context.fillText("基于 OneX FDE 考核培训体系", 80, 1350);
+  context.font = `700 18px ${copy.font}`;
+  context.fillText(copy.framework, 80, 1350);
   context.fillStyle = "#92a4b8";
-  context.font = "16px \"PingFang SC\", sans-serif";
-  context.fillText("版权所有 © 2026 OneX AI 社区", 80, 1386);
+  context.font = `16px ${copy.font}`;
+  context.fillText(copy.copyright, 80, 1386);
 }
