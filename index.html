@@ -226,6 +226,10 @@
               <button type="button" data-exam-action="resume">继续上次答题</button>
               <button type="button" data-exam-action="clear-progress">清除进度</button>
             </div>
+            <div id="progress-warning" class="progress-warning" hidden role="status">
+              <div><span>PROGRESS RESET</span><strong id="progress-warning-copy">旧进度无法恢复，请重新开始。</strong></div>
+              <button type="button" data-exam-action="clear-invalid-progress">清除旧进度</button>
+            </div>
           </div>
         </div>
       </section>
@@ -295,7 +299,7 @@
           <button type="button" data-exam-action="levels">挑战其他等级</button>
           <button type="button" data-exam-action="home">返回首页</button>
         </div>
-        <div id="exam-share-panel" class="exam-share-panel" hidden><canvas id="exam-share-canvas" width="1080" height="1440" aria-label="FDE 分级考核分享卡"></canvas><div><span>SHARE YOUR PROOF</span><h2>分数可以传播，边界必须写清。</h2><p>分享卡会标注等级、模式和认证边界。</p><button type="button" data-exam-action="download-result-card">保存等级成绩卡 PNG</button></div></div>
+        <div id="exam-share-panel" class="exam-share-panel" hidden><canvas id="exam-share-canvas" width="1080" height="1440" aria-label="FDE 分级考核分享卡"></canvas><div><span>SHARE YOUR PROOF</span><h2>分数可以传播，边界必须写清。</h2><p>分享卡会标注等级、模式和认证边界。</p><p id="exam-share-status" class="exam-share-status" role="status"></p><button type="button" data-exam-action="download-result-card">保存等级成绩卡 PNG</button></div></div>
         <p class="onex-credit result-credit"><strong>基于 OneX FDE 考核培训体系</strong><span>版权所有 © 2026 OneX AI 社区</span></p>
       </section>
     </main>

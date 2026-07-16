@@ -13,6 +13,7 @@ const state = {
   currentIndex: 0,
   result: null,
   resume: null,
+  progressIssue: null,
   potentialScore: null,
   returnView: "landing-view",
   reviewModule: "all",
@@ -71,6 +72,15 @@ function findResumable(level) {
     .sort((a, b) => (b.loaded.state.updatedAt ?? 0) - (a.loaded.state.updatedAt ?? 0))[0] ?? null;
 }
 
+function findProgressIssue(level) {
+  const target = storage();
+  if (!target) return null;
+  const validIds = new Set(getQuestionBank(level).map((question) => question.id));
+  return ["full", "mock"]
+    .map((mode) => ({ mode, loaded: loadExamState(target, examStateKey(level, mode), validIds) }))
+    .find((entry) => !entry.loaded.valid && entry.loaded.reason !== "missing") ?? null;
+}
+
 function renderRecommendation() {
   const recommended = recommendLevel(state.potentialScore);
   document.querySelectorAll("[data-level-card]").forEach((card) => card.classList.toggle("is-recommended", card.dataset.levelCard === recommended));
@@ -106,12 +116,19 @@ function renderMode(level) {
   }));
 
   state.resume = findResumable(level);
+  state.progressIssue = findProgressIssue(level);
   const panel = $("#resume-panel");
   panel.hidden = !state.resume;
   if (state.resume) {
     const saved = state.resume.loaded.state;
     const answered = Object.values(saved.answers).filter((answer) => Array.isArray(answer) && answer.length).length;
     $("#resume-copy").textContent = `${state.resume.mode === "full" ? "完整挑战" : "随机模拟"} · 已答 ${answered}/${saved.questionIds.length}`;
+  }
+  const warning = $("#progress-warning");
+  warning.hidden = !state.progressIssue;
+  if (state.progressIssue) {
+    const reasonCopy = state.progressIssue.loaded.reason === "version" ? "旧版" : "损坏";
+    $("#progress-warning-copy").textContent = `检测到${reasonCopy}进度，旧进度无法恢复。清除后即可重新开始。`;
   }
   showView("mode-view");
 }
@@ -346,10 +363,30 @@ function clearCurrentProgress() {
   if (!$("#exam-view").hidden) renderMode(state.level); else renderMode(state.level);
 }
 
+function clearInvalidProgress() {
+  const target = storage();
+  if (state.level && target) {
+    ["full", "mock"].forEach((mode) => clearExamState(target, examStateKey(state.level, mode)));
+  }
+  removeActivePointer();
+  state.progressIssue = null;
+  renderMode(state.level);
+}
+
 function shareResult() {
-  drawExamShareCard($("#exam-share-canvas"), state.result, levelDefinitions[state.level]);
-  $("#exam-share-panel").hidden = false;
-  $("#exam-share-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+  const panel = $("#exam-share-panel");
+  const canvas = $("#exam-share-canvas");
+  const status = $("#exam-share-status");
+  panel.hidden = false;
+  canvas.hidden = false;
+  try {
+    drawExamShareCard(canvas, state.result, levelDefinitions[state.level]);
+    status.textContent = "成绩卡已生成，可保存 PNG 分享。";
+  } catch {
+    canvas.hidden = true;
+    status.textContent = "成绩卡生成失败，成绩不受影响，请重试。";
+  }
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function downloadResultCard() {
@@ -367,7 +404,12 @@ function restoreActiveExam() {
   if (!pointer || !levelDefinitions[pointer.level] || !["full", "mock"].includes(pointer.mode)) return;
   const validIds = new Set(getQuestionBank(pointer.level).map((question) => question.id));
   const loaded = loadExamState(target, examStateKey(pointer.level, pointer.mode), validIds);
-  if (!loaded.valid) { removeActivePointer(); return; }
+  if (!loaded.valid) {
+    removeActivePointer();
+    state.level = pointer.level;
+    renderMode(pointer.level);
+    return;
+  }
   state.level = pointer.level;
   state.mode = pointer.mode;
   startExam(pointer.mode, loaded.state);
@@ -392,6 +434,7 @@ document.addEventListener("click", (event) => {
     "cancel-submit": () => { $("#submit-panel").hidden = true; },
     "confirm-submit": confirmSubmit,
     "clear-progress": clearCurrentProgress,
+    "clear-invalid-progress": clearInvalidProgress,
     "toggle-nav": () => {
       const navigator = $("#exam-navigator");
       const open = navigator.classList.toggle("is-open");
