@@ -157,7 +157,7 @@ function drawRadar(canvas, dimensions) {
 function renderResult() {
   const { result } = state;
   showView("result-view");
-  document.querySelector("#result-level").textContent = result.level.label;
+  document.querySelector("#result-level").textContent = `能力侧写 · ${result.level.label}`;
   document.querySelector("#result-verdict").textContent = result.level.verdict;
   document.querySelector("#result-score").textContent = pad(result.index);
   document.querySelector("#result-strength").textContent = result.strength;

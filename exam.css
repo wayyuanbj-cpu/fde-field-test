@@ -29,12 +29,25 @@
 .level-intro h1 { margin: 0; max-width: 880px; font-size: clamp(52px, 6.2vw, 96px); line-height: .94; letter-spacing: -.065em; }
 .level-intro > p:last-child { margin: 0 0 7px; color: var(--steel); font-size: 15px; line-height: 1.8; }
 
+.progression-path { margin: 0 0 18px; padding: 15px 18px; border: 1px solid var(--line); display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: center; gap: 14px; background: rgba(3,11,23,.72); }
+.progression-path > div { min-width: 0; display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; color: var(--steel-dark); }
+.progression-path span { grid-row: 1 / 3; color: inherit; font: 700 24px/1 var(--mono); }
+.progression-path strong { color: inherit; font-size: 13px; }
+.progression-path small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 8px/1.2 var(--mono); }
+.progression-path i { color: var(--steel-dark); font: 14px/1 var(--mono); }
+.progression-path > div.is-unlocked { color: var(--cobalt-soft); }
+.progression-path > div.is-complete { color: var(--green); }
+.progression-notice { min-height: 22px; margin: 0 0 18px; color: #ffb398; font-size: 12px; line-height: 1.6; }
+
 .level-matrix { border: 1px solid var(--line); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .level-card { --level-accent: #39d98a; min-height: 480px; padding: 22px; border-right: 1px solid var(--line); display: flex; flex-direction: column; position: relative; overflow: hidden; background: rgba(3,11,23,.76); }
 .level-card:last-child { border-right: 0; }
 .level-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--level-accent); transform: scaleY(.18); transform-origin: top; transition: transform .3s ease; }
 .level-card:hover::before, .level-card.is-recommended::before { transform: scaleY(1); }
 .level-card:hover { background: rgba(12,42,77,.62); }
+.level-card.is-locked { opacity: .48; filter: saturate(.55); }
+.level-card.is-locked:hover { background: rgba(3,11,23,.76); }
+.level-card.is-qualified::before { transform: scaleY(1); }
 .level-intermediate { --level-accent: #5d8cff; }
 .level-advanced { --level-accent: #ad7bff; background: linear-gradient(155deg, rgba(173,123,255,.11), rgba(3,11,23,.78) 44%); }
 .level-card header { min-height: 26px; display: flex; justify-content: space-between; gap: 12px; color: var(--steel); font: 9px/1.2 var(--mono); letter-spacing: .1em; }
@@ -43,6 +56,8 @@
 .level-number { margin-top: 32px; color: transparent; -webkit-text-stroke: 1px var(--level-accent); font: 112px/.78 var(--mono); letter-spacing: -.14em; opacity: .8; }
 .level-card h2 { margin: 38px 0 0; font-size: clamp(26px, 2.4vw, 38px); letter-spacing: -.045em; }
 .level-card > p { min-height: 72px; margin: 14px 0 24px; color: var(--steel); font-size: 13px; line-height: 1.75; }
+.level-card .level-access-copy { min-height: 20px; margin: 0 0 8px; color: var(--cobalt-soft); font: 10px/1.5 var(--mono); }
+.level-card .level-best { min-height: 16px; margin: 0 0 12px; color: var(--green); font: 8px/1.4 var(--mono); letter-spacing: .05em; }
 .level-card dl { margin: auto 0 22px; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); display: grid; grid-template-columns: repeat(3, 1fr); }
 .level-card dl div { padding-left: 12px; border-left: 1px solid var(--line); }
 .level-card dl div:first-child { padding-left: 0; border-left: 0; }
@@ -59,6 +74,8 @@
 }
 .level-card > button { width: 100%; border-color: color-mix(in srgb, var(--level-accent) 65%, transparent); text-align: left; }
 .level-card > button:hover { background: var(--level-accent); color: #07162b; }
+.level-card > button:disabled { border-color: var(--line); color: var(--steel-dark); cursor: not-allowed; background: rgba(146,164,184,.04); }
+.level-card > button:disabled:hover { color: var(--steel-dark); background: rgba(146,164,184,.04); }
 .certification-boundary { max-width: 960px; margin: 34px 0 0; padding-left: 18px; border-left: 3px solid var(--orange); color: var(--steel); font-size: 12px; line-height: 1.75; }
 
 .mode-layout { min-height: 650px; padding-top: 86px; display: grid; grid-template-columns: minmax(0, .78fr) minmax(520px, 1.22fr); gap: clamp(48px, 8vw, 120px); }
@@ -205,6 +222,8 @@
   .level-matrix { grid-template-columns: 1fr; }
   .level-card { min-height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
   .level-card:last-child { border-bottom: 0; }
+  .progression-path { grid-template-columns: 1fr; }
+  .progression-path i { transform: rotate(90deg); justify-self: center; }
   .level-number { position: absolute; right: 28px; top: 58px; margin: 0; font-size: 84px; opacity: .38; }
   .level-card h2 { margin-top: 52px; }
   .mode-layout { grid-template-columns: 1fr; }

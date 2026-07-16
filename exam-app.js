@@ -1,5 +1,10 @@
-import { levelDefinitions, moduleDefinition, recommendLevel } from "./assessment-levels.js";
+import { levelDefinitions, levelOrder, moduleDefinition } from "./assessment-levels.js";
 import { buildExam, getQuestionBank, scoreExam } from "./exam-scoring.js";
+import {
+  canAccessLevel,
+  createEmptyProgression,
+  loadProgression,
+} from "./exam-progression.js";
 import { clearExamState, examStateKey, loadExamState, saveExamState } from "./exam-state.js";
 import { drawExamShareCard } from "./exam-share-card.js";
 
@@ -18,6 +23,8 @@ const state = {
   returnView: "landing-view",
   reviewModule: "all",
   reviewLimit: 10,
+  progression: createEmptyProgression(),
+  progressionIssue: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -81,12 +88,39 @@ function findProgressIssue(level) {
     .find((entry) => !entry.loaded.valid && entry.loaded.reason !== "missing") ?? null;
 }
 
-function renderRecommendation() {
-  const recommended = recommendLevel(state.potentialScore);
-  document.querySelectorAll("[data-level-card]").forEach((card) => card.classList.toggle("is-recommended", card.dataset.levelCard === recommended));
-  document.querySelectorAll("[data-recommend-badge]").forEach((badge) => {
-    badge.hidden = badge.dataset.recommendBadge !== recommended;
-    badge.textContent = Number.isFinite(state.potentialScore) ? "系统推荐" : "推荐起点";
+function showProgressionNotice(copy) {
+  $("#progression-notice").textContent = copy;
+}
+
+function renderProgression() {
+  levelOrder.forEach((level, index) => {
+    const card = document.querySelector(`[data-level-card='${level}']`);
+    const button = document.querySelector(`button[data-level='${level}']`);
+    const badge = document.querySelector(`[data-level-status='${level}']`);
+    const lockCopy = document.querySelector(`[data-lock-copy='${level}']`);
+    const bestCopy = document.querySelector(`[data-best-score='${level}']`);
+    const record = state.progression.records[level];
+    const accessible = canAccessLevel(state.progression, level);
+    card.classList.toggle("is-locked", !accessible);
+    card.classList.toggle("is-qualified", record?.qualifies === true);
+    button.disabled = !accessible;
+    button.setAttribute("aria-disabled", String(!accessible));
+    if (record?.qualifies) {
+      badge.textContent = "已晋级";
+      lockCopy.textContent = index === levelOrder.length - 1 ? "已完成三级挑战" : "已解锁下一级";
+      bestCopy.textContent = `BEST ${record.score} · 最低模块 ${record.lowestModuleScore}`;
+    } else if (accessible) {
+      badge.textContent = index === 0 ? "必经起点" : "已解锁";
+      lockCopy.textContent = index === 0 ? "必经起点" : "前一级已晋级，现可挑战";
+      bestCopy.textContent = record ? `BEST ${record.score} · 尚未晋级` : "";
+    } else {
+      badge.textContent = "未解锁";
+      const previous = levelDefinitions[levelOrder[index - 1]]?.shortLabel;
+      lockCopy.textContent = `🔒 ${previous}晋级后解锁`;
+      bestCopy.textContent = "";
+    }
+    document.querySelector(`[data-path-level='${level}']`)?.classList.toggle("is-unlocked", accessible);
+    document.querySelector(`[data-path-level='${level}']`)?.classList.toggle("is-complete", record?.qualifies === true);
   });
 }
 
@@ -94,11 +128,25 @@ export function openLevelSelector(potentialScore = null, returnView = "landing-v
   state.potentialScore = Number.isFinite(potentialScore) ? potentialScore : null;
   state.returnView = returnView;
   $("#level-back-button").textContent = returnView === "result-view" ? "← 返回我的结果" : "← 返回首页";
-  renderRecommendation();
+  renderProgression();
+  if (state.progressionIssue) {
+    showProgressionNotice("晋级规则已升级，旧的中高级进度不作为晋级证据。");
+  } else if (Number.isFinite(state.potentialScore)) {
+    showProgressionNotice("快速测试只生成能力侧写，所有人都需从初级开始晋级。");
+  } else {
+    showProgressionNotice("");
+  }
   showView("level-view");
 }
 
 function renderMode(level) {
+  if (!canAccessLevel(state.progression, level)) {
+    openLevelSelector(state.potentialScore, state.returnView);
+    const index = levelOrder.indexOf(level);
+    const previous = levelDefinitions[levelOrder[index - 1]]?.shortLabel ?? "前一级";
+    showProgressionNotice(`不能跳级。请先完成${previous}完整挑战并达到晋级标准。`);
+    return;
+  }
   const definition = levelDefinitions[level];
   state.level = level;
   $("#mode-level-code").innerHTML = `<span>${definition.code}</span><span>MODE SELECT</span>`;
@@ -402,6 +450,13 @@ function restoreActiveExam() {
   let pointer;
   try { pointer = JSON.parse(target.getItem(ACTIVE_KEY)); } catch { return; }
   if (!pointer || !levelDefinitions[pointer.level] || !["full", "mock"].includes(pointer.mode)) return;
+  if (!canAccessLevel(state.progression, pointer.level)) {
+    clearExamState(target, examStateKey(pointer.level, pointer.mode));
+    removeActivePointer();
+    state.progressionIssue = "locked-active";
+    openLevelSelector(null);
+    return;
+  }
   const validIds = new Set(getQuestionBank(pointer.level).map((question) => question.id));
   const loaded = loadExamState(target, examStateKey(pointer.level, pointer.mode), validIds);
   if (!loaded.valid) {
@@ -423,7 +478,16 @@ document.addEventListener("click", (event) => {
     home: () => { removeActivePointer(); showView("landing-view"); },
     "back-from-level": () => showView(state.returnView),
     levels: () => openLevelSelector(state.potentialScore),
-    "select-level": () => renderMode(target.dataset.level),
+    "select-level": () => {
+      const level = target.dataset.level;
+      if (!canAccessLevel(state.progression, level)) {
+        const index = levelOrder.indexOf(level);
+        const previous = levelDefinitions[levelOrder[index - 1]]?.shortLabel ?? "前一级";
+        showProgressionNotice(`不能跳级。请先完成${previous}完整挑战并达到晋级标准。`);
+        return;
+      }
+      renderMode(level);
+    },
     "start-mode": () => startExam(target.dataset.mode),
     resume: resumeExam,
     mode: () => renderMode(state.level),
@@ -455,4 +519,7 @@ document.addEventListener("change", (event) => {
   if (event.target.matches("#review-filter")) renderReview(event.target.value);
 });
 
+const loadedProgression = loadProgression(storage());
+state.progression = loadedProgression.state;
+state.progressionIssue = loadedProgression.valid ? null : loadedProgression.reason;
 restoreActiveExam();

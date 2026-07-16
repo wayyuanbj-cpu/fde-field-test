@@ -151,7 +151,7 @@
 
         <div class="result-actions">
           <button class="primary-cta" type="button" data-action="share">生成并分享我的 FDE 水平卡</button>
-          <button class="secondary-button light" type="button" data-action="professional">挑战专业测评</button>
+          <button class="secondary-button light" type="button" data-action="professional">从初级开始晋级</button>
           <button class="text-button light" type="button" data-action="restart">重新测试</button>
         </div>
         <p class="onex-credit result-credit"><strong>基于 OneX FDE 考核培训体系</strong><span>版权所有 © 2026 OneX AI 社区</span></p>
@@ -167,37 +167,48 @@
           <p class="onex-credit compact"><strong>基于 OneX FDE 考核培训体系</strong><span>版权所有 © 2026 OneX AI 社区</span></p>
         </div>
         <div class="level-intro">
-          <p class="eyebrow"><span>FDE LEVEL MATRIX</span><span>CHOOSE YOUR FIELD</span></p>
-          <h1 id="level-title">别报头衔。<br />选一个级别，交卷。</h1>
-          <p>无需逐级解锁。普通参与者从初级开始；做过真实交付的人，可以直接进入中级或高级。</p>
+          <p class="eyebrow"><span>FDE PROGRESSION</span><span>NO LEVEL SKIPPING</span></p>
+          <h1 id="level-title">高级不是选的。<br />是一关关考出来的。</h1>
+          <p>所有人从初级开始。完整挑战总分达到 85，且每个模块不低于 70，才能解锁下一级。</p>
         </div>
+        <div id="progression-path" class="progression-path" aria-label="FDE 三级晋级路径">
+          <div data-path-level="junior"><span>01</span><strong>初级</strong><small>必经起点</small></div>
+          <i aria-hidden="true">→</i>
+          <div data-path-level="intermediate"><span>02</span><strong>中级</strong><small>初级晋级后解锁</small></div>
+          <i aria-hidden="true">→</i>
+          <div data-path-level="advanced"><span>03</span><strong>高级</strong><small>中级晋级后解锁</small></div>
+        </div>
+        <p id="progression-notice" class="progression-notice" role="status" aria-live="polite"></p>
         <div class="level-matrix" aria-label="FDE 三级考核">
           <article class="level-card level-junior" data-level-card="junior">
-            <header><span>L1 / FOUNDATION</span><b data-recommend-badge="junior">推荐起点</b></header>
+            <header><span>L1 / FOUNDATION</span><b data-level-status="junior">必经起点</b></header>
             <div class="level-number" aria-hidden="true">01</div>
             <h2>初级 · 理论基础</h2>
             <p>普通参与者、AI 使用者和 FDE 入门学习者。验证模型、Prompt、RAG、场景与交付边界。</p>
-            <dl><div><dt>FULL</dt><dd>100 题</dd></div><div><dt>MOCK</dt><dd>50 题</dd></div><div><dt>PASS</dt><dd>70 分</dd></div></dl>
+            <dl><div><dt>FULL</dt><dd>100 题</dd></div><div><dt>ADVANCE</dt><dd>85 分</dd></div><div><dt>MODULE</dt><dd>≥ 70</dd></div></dl>
+            <p class="level-access-copy" data-lock-copy="junior">必经起点</p><p class="level-best" data-best-score="junior"></p>
             <button type="button" data-exam-action="select-level" data-level="junior">进入初级 →</button>
           </article>
           <article class="level-card level-intermediate" data-level-card="intermediate">
-            <header><span>L2 / DELIVERY</span><b data-recommend-badge="intermediate" hidden>系统推荐</b></header>
+            <header><span>L2 / DELIVERY</span><b data-level-status="intermediate">未解锁</b></header>
             <div class="level-number" aria-hidden="true">02</div>
             <h2>中级 · 情境交付</h2>
             <p>面向做过方案、PoC、工作流或客户交付的人。检验诊断、取舍、推进和验收能力。</p>
-            <dl><div><dt>FULL</dt><dd>60 题</dd></div><div><dt>MOCK</dt><dd>30 题</dd></div><div><dt>PASS</dt><dd>70 分</dd></div></dl>
+            <dl><div><dt>FULL</dt><dd>60 题</dd></div><div><dt>ADVANCE</dt><dd>85 分</dd></div><div><dt>MODULE</dt><dd>≥ 70</dd></div></dl>
+            <p class="level-access-copy" data-lock-copy="intermediate">🔒 初级晋级后解锁</p><p class="level-best" data-best-score="intermediate"></p>
             <button type="button" data-exam-action="select-level" data-level="intermediate">进入中级 →</button>
           </article>
           <article class="level-card level-advanced" data-level-card="advanced">
-            <header><span>L3 / COMMAND</span><b data-recommend-badge="advanced" hidden>系统推荐</b></header>
+            <header><span>L3 / COMMAND</span><b data-level-status="advanced">未解锁</b></header>
             <div class="level-number" aria-hidden="true">03</div>
             <h2>高级 · 复杂决策</h2>
             <p>面向复杂项目、跨部门治理和规模化交付负责人。面对商业压力时仍要做对决定。</p>
-            <dl><div><dt>FULL</dt><dd>40 题</dd></div><div><dt>MOCK</dt><dd>20 题</dd></div><div><dt>PASS</dt><dd>70 分</dd></div></dl>
+            <dl><div><dt>FULL</dt><dd>40 题</dd></div><div><dt>ADVANCE</dt><dd>85 分</dd></div><div><dt>MODULE</dt><dd>≥ 70</dd></div></dl>
+            <p class="level-access-copy" data-lock-copy="advanced">🔒 中级晋级后解锁</p><p class="level-best" data-best-score="advanced"></p>
             <button type="button" data-exam-action="select-level" data-level="advanced">进入高级 →</button>
           </article>
         </div>
-        <p class="certification-boundary">本测试用于水平校准，不等于完整 FDE 能力认证。完整认证还需要工具实操、企业诊断、AI 方案、可运行 Demo 与答辩评审。</p>
+        <p class="certification-boundary">本结果来自传播型 FDE 能力挑战，不代表正式毕业、认证或真实项目能力结论。</p>
       </section>
 
       <section id="mode-view" class="view mode-view" hidden aria-labelledby="mode-title">
