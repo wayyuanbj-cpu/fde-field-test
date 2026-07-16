@@ -1,0 +1,25 @@
+[Unit]
+Description=OneX FDE anonymous analytics service
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/fde-field-test/backend
+Environment=PYTHONPATH=/opt/fde-field-test/backend
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=FDE_ANALYTICS_DB=/var/lib/fde-analytics/analytics.db
+Environment=FDE_ANALYTICS_HOST=127.0.0.1
+Environment=FDE_ANALYTICS_PORT=8765
+ExecStart=/usr/bin/python3 -m fde_analytics.app
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/fde-analytics
+
+[Install]
+WantedBy=multi-user.target

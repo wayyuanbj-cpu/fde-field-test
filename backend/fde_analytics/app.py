@@ -101,12 +101,16 @@ def _status_text(status):
 
 def create_app(db_path, now_provider=None):
     now_provider = now_provider or (lambda: datetime.now(timezone.utc))
+    setup = connect(db_path)
+    try:
+        initialize(setup)
+    finally:
+        setup.close()
 
     def application(environ, start_response):
         method = environ.get("REQUEST_METHOD", "GET").upper()
         path = environ.get("PATH_INFO", "")
         conn = connect(db_path)
-        initialize(conn)
         token = _cookie_token(environ)
         user = authenticate_session(conn, token, now_provider())
 
@@ -127,6 +131,11 @@ def create_app(db_path, now_provider=None):
                     return _response(start_response, 405, {"error": "method_not_allowed"}, admin=False)
                 record_event(conn, _read_json(environ), now_provider())
                 return _response(start_response, 204, admin=False)
+
+            if path == "/api/analytics/health":
+                if method != "GET":
+                    return _response(start_response, 405, {"error": "method_not_allowed"})
+                return _response(start_response, 200, {"status": "ok"})
 
             if path == "/api/analytics/auth/login":
                 if method != "POST":

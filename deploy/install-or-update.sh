@@ -6,6 +6,9 @@ ARCHIVE_URL="https://codeload.github.com/wayyuanbj-cpu/fde-field-test/tar.gz/ref
 SOURCE_DIR="/opt/fde-field-test"
 WEB_ROOT="/var/www/fde.onex.plus"
 NGINX_SITE="/etc/nginx/sites-available/fde.onex.plus"
+ANALYTICS_DATA="/var/lib/fde-analytics"
+ANALYTICS_SERVICE="/etc/systemd/system/fde-analytics.service"
+ANALYTICS_CREDENTIALS="/root/fde-stats-credentials.json"
 
 if [[ "$(id -u)" -ne 0 ]]; then
   echo "Please run this script as root." >&2
@@ -39,10 +42,30 @@ rsync -a --delete \
   --exclude='.git/' \
   --exclude='.github/' \
   --exclude='deploy/' \
+  --exclude='backend/' \
+  --exclude='tests/' \
+  --exclude='docs/' \
+  --exclude='.worktrees/' \
   --exclude='README.md' \
   --exclude='LICENSE' \
   "$SOURCE_DIR/" "$WEB_ROOT/"
 chown -R www-data:www-data "$WEB_ROOT"
+
+install -d -m 0750 -o www-data -g www-data "$ANALYTICS_DATA"
+PYTHONPATH="$SOURCE_DIR/backend" python3 -m fde_analytics.manage bootstrap \
+  --db "$ANALYTICS_DATA/analytics.db" \
+  --username owner \
+  --credentials "$ANALYTICS_CREDENTIALS"
+chown -R www-data:www-data "$ANALYTICS_DATA"
+chmod 0750 "$ANALYTICS_DATA"
+if [[ -f "$ANALYTICS_CREDENTIALS" ]]; then
+  chown root:root "$ANALYTICS_CREDENTIALS"
+  chmod 0600 "$ANALYTICS_CREDENTIALS"
+fi
+install -m 0644 "$SOURCE_DIR/deploy/fde-analytics.service" "$ANALYTICS_SERVICE"
+systemctl daemon-reload
+systemctl enable --now fde-analytics.service
+systemctl restart fde-analytics.service
 
 if [[ ! -f /etc/letsencrypt/live/fde.onex.plus/fullchain.pem ]]; then
   install -m 0644 "$SOURCE_DIR/deploy/fde.onex.plus.acme.nginx.conf" "$NGINX_SITE"
@@ -65,4 +88,13 @@ fi
 
 bash "$SOURCE_DIR/deploy/configure-xray-sni.sh"
 
+for _ in {1..20}; do
+  if curl --fail --silent --max-time 2 http://127.0.0.1:8765/api/analytics/health >/dev/null; then
+    break
+  fi
+  sleep 1
+done
+curl --fail --silent --max-time 2 http://127.0.0.1:8765/api/analytics/health >/dev/null
+
 echo "FDE site deployed from $REPO_URL main branch to https://fde.onex.plus/"
+echo "Private analytics dashboard: https://fde.onex.plus/stats/"
