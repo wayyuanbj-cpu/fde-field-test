@@ -30,6 +30,8 @@ sudo bash deploy/install-or-update.sh
 
 脚本会从 GitHub 下载 `main` 分支官方归档、同步公开站点文件、校验 Nginx 配置并为 `fde.onex.plus` 申请或续用 HTTPS 证书。使用归档方式是为了适配国内服务器访问 GitHub 的网络特点。
 
+OneX ECS 的 443 端口同时承载 Xray。部署脚本会通过 Nginx SNI 预读将 `fde.onex.plus` 分流到网站，其余 TLS 流量继续转发给 Xray，从而保留原有翻墙服务。
+
 ## 权利声明
 
 基于 OneX FDE 考核培训体系。

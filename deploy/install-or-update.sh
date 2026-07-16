@@ -17,6 +17,7 @@ command -v curl >/dev/null 2>&1 || missing_packages+=(curl)
 command -v rsync >/dev/null 2>&1 || missing_packages+=(rsync)
 command -v nginx >/dev/null 2>&1 || missing_packages+=(nginx)
 command -v certbot >/dev/null 2>&1 || missing_packages+=(certbot python3-certbot-nginx)
+dpkg-query -W -f='${Status}' libnginx-mod-stream 2>/dev/null | grep -q 'ok installed' || missing_packages+=(libnginx-mod-stream)
 
 if ((${#missing_packages[@]})); then
   apt-get update
@@ -43,20 +44,25 @@ rsync -a --delete \
   "$SOURCE_DIR/" "$WEB_ROOT/"
 chown -R www-data:www-data "$WEB_ROOT"
 
-install -m 0644 "$SOURCE_DIR/deploy/fde.onex.plus.nginx.conf" "$NGINX_SITE"
+if [[ ! -f /etc/letsencrypt/live/fde.onex.plus/fullchain.pem ]]; then
+  install -m 0644 "$SOURCE_DIR/deploy/fde.onex.plus.acme.nginx.conf" "$NGINX_SITE"
+else
+  install -m 0644 "$SOURCE_DIR/deploy/fde.onex.plus.nginx.conf" "$NGINX_SITE"
+fi
 ln -sfn "$NGINX_SITE" /etc/nginx/sites-enabled/fde.onex.plus
 nginx -t
 systemctl reload nginx
 
-certbot --nginx \
+if [[ ! -f /etc/letsencrypt/live/fde.onex.plus/fullchain.pem ]]; then
+certbot certonly --webroot \
+  --webroot-path "$WEB_ROOT" \
   --domain fde.onex.plus \
   --non-interactive \
   --agree-tos \
-  --redirect \
   --keep-until-expiring \
   --register-unsafely-without-email
+fi
 
-nginx -t
-systemctl reload nginx
+bash "$SOURCE_DIR/deploy/configure-xray-sni.sh"
 
 echo "FDE site deployed from $REPO_URL main branch to https://fde.onex.plus/"
