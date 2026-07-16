@@ -50,4 +50,25 @@ assert.equal(normalizeLocale("fr"), "zh-CN");
 assert.equal(zh.locale, "zh-CN");
 assert.equal(en.locale, "en-US");
 
+const englishQuestions = Object.values(en.questionBanks).flat();
+const englishQuestionCopy = englishQuestions.flatMap((question) => [
+  question.context,
+  question.prompt,
+  ...question.options,
+  question.explanation,
+]).join("\n");
+const englishQuickCopy = en.quick.questions.flatMap((question) => [
+  question.scenario,
+  question.prompt,
+  ...question.options.flatMap((option) => [option.text, option.signal]),
+]).join("\n");
+assert.doesNotMatch(`${englishQuickCopy}\n${englishQuestionCopy}`, /[\u3400-\u9fff]/u);
+assert.doesNotMatch(`${englishQuickCopy}\n${englishQuestionCopy}`, /carry out landing|empowerment|closed loop thinking|calibration your ability/i);
+
+for (const question of englishQuestions) {
+  assert.ok(question.prompt.trim(), `${question.id} prompt must be translated`);
+  assert.ok(question.explanation.trim(), `${question.id} explanation must be translated`);
+  assert.ok(question.options.every((option) => option.trim()), `${question.id} options must be translated`);
+}
+
 console.log("FDE bilingual locale contract checks passed");
