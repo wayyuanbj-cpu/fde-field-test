@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="logo-title logo-desc">
+  <title id="logo-title">FDE Field Calibration</title>
+  <desc id="logo-desc">由校准刻度与 FDE 字母骨架构成的能力验证标志</desc>
+  <g fill="none" stroke-linecap="square">
+    <path d="M64 8A56 56 0 0 1 120 64" stroke="#2962ff" stroke-width="8"/>
+    <path d="M120 64A56 56 0 0 1 64 120" stroke="#0c2a4d" stroke-width="8"/>
+    <path d="M64 120A56 56 0 0 1 8 64" stroke="#2962ff" stroke-width="8"/>
+    <path d="M8 64A56 56 0 0 1 64 8" stroke="#0c2a4d" stroke-width="8"/>
+    <path d="M64 2v16M64 110v16M2 64h16M110 64h16" stroke="#ff5a1f" stroke-width="5"/>
+    <path d="M27 42h22M27 42v44M27 62h18" stroke="#f4f7fb" stroke-width="8"/>
+    <path d="M58 42h8c17 0 27 8 27 22s-10 22-27 22h-8z" stroke="#f4f7fb" stroke-width="8"/>
+    <path d="M84 42h20M84 64h17M84 86h20" stroke="#f4f7fb" stroke-width="8"/>
+    <circle cx="64" cy="64" r="4" fill="#ff5a1f" stroke="none"/>
+  </g>
+</svg>
