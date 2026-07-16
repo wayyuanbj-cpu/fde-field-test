@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#061426" />
+    <title>FDE 是什么？职责、能力模型与水平测试｜OneX</title>
+    <meta name="description" content="一篇说清 Field Deployment Engineer（FDE）的定义、核心职责、五维能力模型、与售前及工程师的区别，以及 OneX FDE 三级测评方法。" />
+    <link rel="canonical" href="https://fde.onex.plus/fde-guide/" />
+    <link rel="alternate" hreflang="zh-CN" href="https://fde.onex.plus/fde-guide/" />
+    <link rel="alternate" hreflang="en" href="https://fde.onex.plus/en/fde-guide/" />
+    <link rel="alternate" hreflang="x-default" href="https://fde.onex.plus/fde-guide/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content="FDE 是什么？职责、能力模型与水平测试" />
+    <meta property="og:description" content="从企业问题到 AI 能力，再到可验收的交付结果：OneX FDE 角色与评估方法参考。" />
+    <meta property="og:url" content="https://fde.onex.plus/fde-guide/" />
+    <meta property="og:image" content="https://fde.onex.plus/assets/og-fde-zh.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FDE 是什么？OneX FDE 角色与能力模型" />
+    <meta name="twitter:description" content="FDE 定义、职责、能力边界与三级测评方法。" />
+    <meta name="twitter:image" content="https://fde.onex.plus/assets/og-fde-zh.png" />
+    <link rel="icon" href="../logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../guide.css" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://fde.onex.plus/#organization","name":"OneX AI 社区","url":"https://fde.onex.plus/","logo":{"@type":"ImageObject","url":"https://fde.onex.plus/logo.svg"}},{"@type":"TechArticle","@id":"https://fde.onex.plus/fde-guide/#article","headline":"FDE 是什么？职责、能力模型与水平测试","description":"Field Deployment Engineer 的定义、职责、五维能力模型、角色对比与 OneX 三级测评方法。","inLanguage":"zh-CN","datePublished":"2026-07-16","dateModified":"2026-07-16","version":"1.0","author":{"@id":"https://fde.onex.plus/#organization"},"publisher":{"@id":"https://fde.onex.plus/#organization"},"mainEntityOfPage":"https://fde.onex.plus/fde-guide/","image":"https://fde.onex.plus/assets/og-fde-zh.png","articleSection":["FDE 定义","核心职责","五维能力模型","角色对比","测评方法","能力边界"]}]}</script>
+  </head>
+  <body>
+    <div class="guide-noise" aria-hidden="true"></div>
+    <header class="guide-header">
+      <a class="guide-brand" href="../"><img src="../logo.svg" alt="" /><span><strong>FDE FIELD TEST</strong><small>REFERENCE / VERSION 1.0</small></span></a>
+      <nav class="guide-actions" aria-label="页面导航"><a href="../">去做测试</a><a href="../en/fde-guide/" lang="en" hreflang="en">EN</a></nav>
+    </header>
+    <main class="guide-main">
+      <section class="guide-hero">
+        <div>
+          <p class="guide-kicker">FDE REFERENCE / ANSWER-FIRST GUIDE</p>
+          <h1>FDE 是什么？<br /><em>不只是会用 AI。</em></h1>
+          <p class="guide-lead">Field Deployment Engineer（FDE）是连接企业问题、AI 能力、运营约束与可验收交付结果的复合型角色。他不是只做演示的售前，也不是只接需求写代码的工程师。</p>
+          <p class="guide-meta"><span>发布者：OneX AI 社区</span><span>审校日期：<time datetime="2026-07-16">2026-07-16</time></span><span>版本：1.0</span></p>
+        </div>
+        <nav class="hero-index" aria-label="FDE 参考目录"><span>DOCUMENT MAP</span><ol><li><a href="#definition"><b>01</b><span>FDE 定义</span></a></li><li><a href="#responsibilities"><b>02</b><span>核心职责</span></a></li><li><a href="#capability-model"><b>03</b><span>五维能力模型</span></a></li><li><a href="#role-comparison"><b>04</b><span>角色对比</span></a></li><li><a href="#assessment-method"><b>05</b><span>测评方法</span></a></li><li><a href="#boundaries"><b>06</b><span>结果边界</span></a></li></ol></nav>
+      </section>
+
+      <section id="definition" class="answer-section"><aside class="section-rail"><span>01 / DEFINITION</span><p>WHAT IS AN FDE?</p></aside><div class="section-body"><h2>FDE 的核心，是对“从问题到结果”负责。</h2><p class="direct-answer">FDE 把模糊的企业诉求转化为可执行的 AI 场景，在真实数据、权限、流程和组织约束下完成试点、上线、验收与持续使用。</p><h3>为什么这个角色现在重要？</h3><p>AI 能力更容易获取了，但企业交付的难点没有消失：问题不清楚、数据不可用、异常无人接管、价值无法量化、组织不愿改流程。FDE 的价值是把这些现实条件纳入方案，而不是展示一个脱离现场的 Demo。</p></div></section>
+
+      <section id="responsibilities" class="answer-section"><aside class="section-rail"><span>02 / RESPONSIBILITY</span><p>WHAT DOES AN FDE DO?</p></aside><div class="section-body"><h2>FDE 通常负责六件事。</h2><p class="direct-answer">诊断真问题、选择场景、设计方案、守住风险边界、推进交付，并用证据证明产品已经产生可持续的业务结果。</p><div class="responsibility-grid"><article><span>01 / DIAGNOSE</span><h3>业务诊断</h3><p>访谈关键人、还原真实流程，找出痛点、频率、成本与现有证据。</p></article><article><span>02 / PRIORITIZE</span><h3>场景取舍</h3><p>同时考虑价值、数据就绪度、风险、复杂度和推广阻力，选第一个值得做的场景。</p></article><article><span>03 / DESIGN</span><h3>方案与工作流</h3><p>明确输入、模型、知识、工具、权限、人工审批、异常处理和输出。</p></article><article><span>04 / PROVE</span><h3>交付与验收</h3><p>用基线、试点、质量门槛、用户采用率和业务指标完成可追溯的验收。</p></article></div></div></section>
+
+      <section id="capability-model" class="answer-section"><aside class="section-rail"><span>03 / CAPABILITY</span><p>ONEX FIVE-DIMENSION MODEL</p></aside><div class="section-body"><h2>OneX 用五个维度观察 FDE 能力。</h2><p class="direct-answer">真正的 FDE 不是某一项工具特别熟练，而是能同时完成业务诊断、场景判断、方案构建、风险控制和推进交付。</p><div class="capability-grid"><article><span>01 / DIA</span><h3>业务诊断</h3><p>找到真实流程、关键人、基线和问题证据。</p></article><article><span>02 / SCN</span><h3>场景判断</h3><p>知道什么值得先做，什么现在不应自动化。</p></article><article><span>03 / SOL</span><h3>方案构建</h3><p>把需求拆成可执行、可观测、可回退的工作流。</p></article><article><span>04 / SAFE</span><h3>风险边界</h3><p>处理数据、权限、审批、承诺、审计和失败恢复。</p></article><article><span>05 / DEL</span><h3>推进交付</h3><p>跨过 Demo，进入试点、上线、验收和持续使用。</p></article></div></div></section>
+
+      <section id="role-comparison" class="answer-section"><aside class="section-rail"><span>04 / COMPARISON</span><p>ROLE BOUNDARIES</p></aside><div class="section-body"><h2>FDE 与售前、产品经理、软件工程师有什么不同？</h2><p class="direct-answer">关键不是“会不会写代码”，而是责任边界：FDE 对企业现场中方案能否完成交付并产生可验收结果负责。</p><div class="table-wrap"><table><thead><tr><th>角色</th><th>主要目标</th><th>典型产出</th><th>对现场结果的责任</th></tr></thead><tbody><tr><td>FDE</td><td>把 AI 能力变成可运行、可验收的业务结果</td><td>诊断、试点、工作流、控制面、验收证据</td><td>跨越问题定义、技术、交付和采用</td></tr><tr><td>售前解决方案</td><td>证明产品与客户需求的匹配</td><td>演示、方案书、技术澄清</td><td>通常聚焦签约前或交接前</td></tr><tr><td>产品经理</td><td>决定通用产品应解决什么问题</td><td>路线图、需求、产品指标</td><td>对产品方向负责，不一定驻场交付</td></tr><tr><td>软件 / ML 工程师</td><td>构建可靠的软件、数据或模型系统</td><td>代码、模型、服务、基础设施</td><td>对技术质量负责，责任范围由团队设计决定</td></tr></tbody></table></div></div></section>
+
+      <section id="assessment-method" class="answer-section"><aside class="section-rail"><span>05 / ASSESSMENT</span><p>HOW THE TEST WORKS</p></aside><div class="section-body"><h2>OneX FDE 公开水平测试怎么评？</h2><p class="direct-answer">先用 12 道企业情境题判断能力倾向，再按初级 100 题、中级 60 题、高级 40 题的顺序挑战，验证知识、情境判断与复杂交付决策。</p><div class="assessment-grid"><article><span>QUICK / 12</span><h3>测测 FDE 灵根</h3><p>约 8 分钟，输出五维能力侧写；只判断潜质，不用于晋级。</p></article><article><span>L1 / 100</span><h3>初级·理论基础</h3><p>模型、Prompt、RAG、Agent、场景设计、交付与治理。</p></article><article><span>L2 / 60</span><h3>中级·情境交付</h3><p>在真实项目压力中评估诊断、取舍、方案、推进和验收。</p></article><article><span>L3 / 40</span><h3>高级·复杂决策</h3><p>复杂系统、跨部门治理、规模化交付、业务价值和风险兜底。</p></article></div><div class="standard-box"><strong>STRICT PROGRESSION STANDARD</strong><p>所有人必须从初级开始，不得跳级。完整挑战总分至少 85，且每个模块至少 70，才解锁下一级。随机模拟只用于练习，不会解锁等级。</p></div></div></section>
+
+      <section id="boundaries" class="answer-section"><aside class="section-rail"><span>06 / BOUNDARY</span><p>WHAT THIS RESULT MEANS</p></aside><div class="section-body"><h2>线上高分，不等同于已经是 FDE。</h2><p class="direct-answer">这个网站是面向公众的 FDE 能力挑战和传播工具，用来观察理论理解与情境判断，不等同于正式毕业、认证或真实项目能力结论。</p><div class="boundary-box"><strong>正式评估还需要什么？</strong><p>真实项目材料、可运行方案、验收证据、现场质询、数据与权限边界、客户或业务方反馈，以及对长期使用结果的复盘。线上成绩可以成为一个输入，但不能替代这些证据。</p></div></div></section>
+
+      <section class="guide-cta"><h2>你会讲 FDE，还是能在现场做出正确决定？</h2><a href="../">测测你的 FDE 灵根 →</a></section>
+    </main>
+    <footer class="guide-footer"><span>基于 OneX FDE 考核培训体系</span><span>版权所有 © 2026 OneX AI 社区</span></footer>
+  </body>
+</html>
