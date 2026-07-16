@@ -93,6 +93,40 @@ def initialize(conn):
             count INTEGER NOT NULL DEFAULT 0,
             PRIMARY KEY(day, event, level, bucket)
         );
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password_salt BLOB NOT NULL,
+            password_hash BLOB NOT NULL,
+            role TEXT NOT NULL CHECK(role IN ('owner','analyst')),
+            active INTEGER NOT NULL DEFAULT 1,
+            must_change_password INTEGER NOT NULL DEFAULT 1,
+            failed_count INTEGER NOT NULL DEFAULT 0,
+            lock_until TEXT,
+            auth_version INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            last_login_at TEXT
+        );
+        CREATE TABLE IF NOT EXISTS sessions (
+            token_hash BLOB PRIMARY KEY,
+            csrf_hash BLOB NOT NULL,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            auth_version INTEGER NOT NULL,
+            created_at TEXT NOT NULL,
+            expires_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+        CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions(expires_at);
+        CREATE TABLE IF NOT EXISTS audit_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            actor_user_id INTEGER REFERENCES users(id),
+            action TEXT NOT NULL,
+            target_user_id INTEGER REFERENCES users(id),
+            details TEXT NOT NULL,
+            occurred_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_audit_time ON audit_log(occurred_at);
         """
     )
     conn.commit()
