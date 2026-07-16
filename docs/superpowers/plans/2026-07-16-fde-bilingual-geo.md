@@ -534,13 +534,13 @@ git commit -m "Document bilingual GEO release"
 **Interfaces:**
 - Production: `https://fde.onex.plus/`, `/en/`, `/fde-guide/`, `/en/fde-guide/`, `/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/stats/`.
 
-- [ ] **Step 1: Push the verified commit chain**
+- [x] **Step 1: Push the verified commit chain**
 
 Run: `git push origin main`
 
 Expected: GitHub `main` advances to the locally verified HEAD.
 
-- [ ] **Step 2: Deploy from GitHub main to Aliyun**
+- [x] **Step 2: Deploy from GitHub main to Aliyun**
 
 Run:
 
@@ -550,26 +550,36 @@ ssh -o BatchMode=yes -i /Users/yuanwei/.ssh/51tokens_deploy root@123.56.153.120 
 
 Expected: deploy script completes, Nginx reloads, analytics health passes, and Xray SNI routing remains intact.
 
-- [ ] **Step 3: Verify live HTTP and content types**
+- [x] **Step 3: Verify live HTTP and content types**
 
 Use `curl --fail --silent --show-error --head` and GET checks to require `200` for all public routes, `text/plain` for robots/llms/IndexNow key, XML for sitemap, HTML for pages, and `X-Robots-Tag: noindex, nofollow` on `/stats/`.
 
-- [ ] **Step 4: Verify crawler behavior**
+- [x] **Step 4: Verify crawler behavior**
 
 Fetch public guide pages using each approved search User-Agent and require readable text. Confirm `/api/` and `/stats/` remain excluded/private and training groups are disallowed by the production robots response.
 
-- [ ] **Step 5: Submit IndexNow update notification**
+- [x] **Step 5: Submit IndexNow update notification**
 
 POST the four canonical URLs and public key location to `https://api.indexnow.org/indexnow`; require a successful accepted/OK response and record the timestamp without storing credentials.
 
-- [ ] **Step 6: Run live browser acceptance**
+- [x] **Step 6: Run live browser acceptance**
 
 Verify Chinese CTA, English mirror, language-state handoff, both guides, share cards, anonymous event ingestion, private Chinese stats login, AI-source panel, 390 px layout, and zero console errors.
 
-- [ ] **Step 7: Record manual ownership follow-ups**
+- [x] **Step 7: Record manual ownership follow-ups**
 
 Prepare the exact Google Search Console and Bing Webmaster Tools sitemap/inspection steps. Account-side ownership and submission remain pending until the user is authenticated in those consoles; do not claim completion before that action occurs.
 
-- [ ] **Step 8: Report release truthfully**
+- [x] **Step 8: Report release truthfully**
 
 Deliver the production links, deployed Git commit, verification summary, crawler policy, and remaining webmaster-account step. State clearly that GEO makes the site eligible and citation-ready but does not guarantee recommendation.
+
+## Release Evidence
+
+- Production acceptance completed: `2026-07-16 22:44 CST`.
+- GitHub `main` and the Aliyun deployment included runtime commit `fb55ede` after the sitemap MIME correction.
+- All four canonical pages, robots, sitemap, llms index, IndexNow key, and private stats login returned the expected live status and content type.
+- Googlebot, bingbot, OAI-SearchBot, PerplexityBot, Claude-SearchBot, and Claude-User all retrieved the public English guide successfully.
+- Anonymous English event ingestion returned HTTP `204` and the SQLite row was verified; an unauthenticated dashboard request returned HTTP `401`.
+- IndexNow accepted the four canonical URLs with HTTP `202` at `2026-07-16 22:44 CST`.
+- Google Search Console and Bing Webmaster Tools ownership/sitemap actions remain account-side follow-ups and are not represented as completed submissions.
