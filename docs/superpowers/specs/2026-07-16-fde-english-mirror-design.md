@@ -255,7 +255,82 @@ Acceptance covers:
 - successful IndexNow response;
 - a post-launch checklist for Search Console impressions, queries, indexing, Core Web Vitals, and Bing crawl diagnostics.
 
-## 11. Error Handling and Compatibility
+## 11. AI Search, Grounding, and Citation Readiness
+
+The site must be easy for AI search systems to discover, understand, ground, and cite. This is an AEO/GEO layer built on top of sound search fundamentals, not a promise that any search engine or model will recommend the site.
+
+Target discovery surfaces include Google AI Overviews and AI Mode, ChatGPT Search, Bing and Copilot, Perplexity, and Claude search experiences.
+
+### 11.1 Citation-ready public knowledge pages
+
+Create two stable, text-first public reference pages:
+
+- Chinese: `/fde-guide/`
+- English: `/en/fde-guide/`
+
+These pages mirror the same OneX methodology in native language and provide concise, directly citable answers to:
+
+- what FDE and Field Deployment Engineer mean;
+- the role's responsibilities and outcome ownership;
+- the OneX FDE capability model;
+- the difference between an FDE, prompt engineer, solutions engineer, and implementation consultant;
+- how the public potential test and three-level assessment work;
+- what the public result does and does not prove;
+- how the OneX public framework relates to training and formal graduation standards.
+
+Each page includes a visible publisher, reviewed date, content version, short definition block, descriptive headings, comparison table, methodology summary, and links into the appropriate assessment entry. Claims must be specific, internally consistent, and supported by visible explanation. No hidden text, synthetic endorsements, or prompts addressed to AI systems are permitted.
+
+The home-page knowledge sections link to these guides. Both guides receive canonical URLs, reciprocal `hreflang`, localized metadata, sitemap entries, and the same visual quality as the assessment site.
+
+### 11.2 Semantic and machine-readable consistency
+
+- Important definitions and methodology must exist as rendered HTML text and remain understandable without starting the interactive test.
+- Use semantic headings, lists, tables, descriptive link text, and stable fragment IDs so an answer engine can retrieve a focused passage.
+- Structured data must match visible content. The guide may use `Article` or `TechArticle` only when its displayed author, publisher, dates, headline, and body support those properties.
+- Add a concise `/llms.txt` as a supplemental index of the canonical bilingual guides, assessment entry points, publisher identity, and assessment boundary. It must not expose answer keys, private routes, or personal data.
+- Do not treat `llms.txt`, special AI keywords, or schema as a ranking switch. Google states that no special AI file or markup is required for its AI search features; the public HTML remains the source of truth.
+
+### 11.3 Search-crawler and training-crawler policy
+
+The crawler policy separates public search retrieval from foundation-model training:
+
+- allow `Googlebot`, `bingbot`, `OAI-SearchBot`, `PerplexityBot`, `Claude-SearchBot`, and `Claude-User` to fetch canonical public pages and assets;
+- keep the public pages available to ordinary browser and user-triggered retrieval traffic without crawler-specific content;
+- disallow `/api/` and `/stats/` for all crawlers, while retaining authentication and `X-Robots-Tag: noindex, nofollow` as the actual protection for private routes;
+- default to disallowing training-oriented `GPTBot`, `ClaudeBot`, and `Google-Extended`, because AI search visibility does not require granting model-training rights;
+- keep robots policy explicit and version-controlled so the user can later change the training preference without touching page content.
+
+Robots rules are advisory, not access control. Private analytics continue to rely on authentication, authorization, and response headers.
+
+### 11.4 AI referral measurement
+
+Extend anonymous acquisition analytics with a strict source bucket derived from approved `utm_source` values and referrer hostnames:
+
+- `chatgpt`
+- `perplexity`
+- `copilot`
+- `claude`
+- `gemini`
+- `search`
+- `direct`
+- `other`
+
+Store only the normalized bucket, never the full referring URL or query. The Chinese private dashboard adds AI-referral visits and assessment starts by source and locale. This change must preserve DNT, webdriver, local-preview, and analytics-failure isolation rules.
+
+### 11.5 AI discovery validation and monitoring
+
+Acceptance covers:
+
+- crawler-specific robots tests for public guides, `/api/`, and `/stats/`;
+- `200` responses and crawlable rendered text for both guide pages without requiring interaction;
+- no WAF, rate-limit, or JavaScript requirement that blocks approved search crawlers from reading primary content;
+- exact agreement among visible claims, localized pages, JSON-LD, and `llms.txt`;
+- no answer keys, private analytics, or formal-certification claims in search-facing files;
+- AI-referral source classification tests without full-referrer retention;
+- Bing Webmaster Tools AI Performance monitoring for citations and grounding queries when available;
+- post-indexing citation smoke checks in major AI search products, recorded as observations rather than guaranteed acceptance criteria.
+
+## 12. Error Handling and Compatibility
 
 - Missing English content must fail loudly in tests, not silently fall back to Chinese inside a question.
 - A language switch during an active assessment must restore by question ID.
@@ -263,7 +338,7 @@ Acceptance covers:
 - English text must not cause horizontal overflow at 390 px.
 - Share-card text must fit or shrink predictably for long English labels and optional names.
 
-## 12. Testing and Acceptance
+## 13. Testing and Acceptance
 
 Acceptance requires:
 
@@ -276,17 +351,23 @@ Acceptance requires:
 - desktop and 390 px mobile checks with no overflow or console errors;
 - analytics locale validation and Chinese-dashboard language breakdown;
 - SEO regression checks for titles, descriptions, canonical URLs, `hreflang`, JSON-LD, robots, sitemap, and social cards;
+- bilingual guide-page, approved AI-crawler, training-crawler, `llms.txt`, and AI-referral analytics checks;
 - production verification for `/`, `/en/`, `/stats/`, API health, Xray, and analytics failure isolation.
 
-## 13. Deployment
+## 14. Deployment
 
 The English mirror ships in the existing GitHub repository and is deployed through the existing GitHub-to-Aliyun script. Public web deployment includes `/en/`; translation working files under `docs/` remain excluded from the web root.
 
 The release is complete only when GitHub `main`, the Aliyun web root, and live browser checks all match the same commit.
 
-## 14. SEO Reference Basis
+## 15. SEO and AI Discovery Reference Basis
 
 The implementation follows current primary-source guidance from:
 
 - Google Search Central: multilingual sites, localized versions, title links, structured data, people-first content, sitemaps, and recrawl requests;
-- Bing Webmaster Guidelines: crawlable links, canonical URLs, sitemap freshness, and IndexNow.
+- Google Search Central: AI features and AI optimization guidance, including the requirement that important content be available as text and the clarification that no special AI file or schema is required;
+- OpenAI publisher guidance: `OAI-SearchBot` controls inclusion in ChatGPT search summaries, snippets, citations, and links, while `GPTBot` is a separate training control;
+- Bing Webmaster Guidelines and AI Performance: crawlable, structured, original content for search and Copilot grounding, plus citation and grounding-query reporting;
+- Perplexity crawler documentation: `PerplexityBot` for search-result discovery rather than foundation-model training;
+- Anthropic crawler documentation: separate controls for `Claude-SearchBot`, `Claude-User`, and the training-oriented `ClaudeBot`;
+- Bing IndexNow guidance for notifying participating search engines of canonical page updates.
