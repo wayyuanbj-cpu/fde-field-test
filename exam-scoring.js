@@ -1,13 +1,4 @@
-import { levelDefinitions } from "./assessment-levels.js";
-import { juniorQuestions } from "./professional-question-data.js";
-import { intermediateQuestions } from "./intermediate-question-data.js";
-import { advancedQuestions } from "./advanced-question-data.js";
-
-const banks = Object.freeze({
-  junior: juniorQuestions,
-  intermediate: intermediateQuestions,
-  advanced: advancedQuestions,
-});
+import { activeBundle } from "./locales/index.js";
 
 function normalized(values = []) {
   return [...new Set(Array.isArray(values) ? values : [])].sort((a, b) => a - b);
@@ -37,9 +28,9 @@ function shuffled(items, random) {
   return copy;
 }
 
-export function buildExam(level, mode, random = Math.random) {
-  const definition = levelDefinitions[level];
-  const bank = banks[level];
+export function buildExam(level, mode, random = Math.random, bundle = activeBundle) {
+  const definition = bundle.levels[level];
+  const bank = bundle.questionBanks[level];
   if (!definition || !bank) throw new Error(`未知等级：${level}`);
   if (mode === "full") return shuffled(bank, random);
   if (mode !== "mock") throw new Error(`未知模式：${mode}`);
@@ -49,8 +40,8 @@ export function buildExam(level, mode, random = Math.random) {
   });
 }
 
-export function getQuestionBank(level) {
-  const bank = banks[level];
+export function getQuestionBank(level, bundle = activeBundle) {
+  const bank = bundle.questionBanks[level];
   if (!bank) throw new Error(`未知等级：${level}`);
   return bank;
 }
