@@ -183,6 +183,18 @@ def verify_csrf(conn, token, csrf, now=None):
     return bool(row) and hmac.compare_digest(row["csrf_hash"], hashlib.sha256(csrf.encode()).digest())
 
 
+def rotate_csrf(conn, token):
+    if not token:
+        return None
+    csrf = secrets.token_urlsafe(24)
+    with conn:
+        cursor = conn.execute(
+            "UPDATE sessions SET csrf_hash=? WHERE token_hash=?",
+            (hashlib.sha256(csrf.encode()).digest(), hashlib.sha256(token.encode()).digest()),
+        )
+    return csrf if cursor.rowcount else None
+
+
 def revoke_session(conn, token):
     if token:
         with conn:
