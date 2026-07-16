@@ -307,9 +307,14 @@
           <header><div><span>REVIEW LOG</span><h2 id="review-title">错题与解析</h2></div><label>按模块筛选<select id="review-filter" data-exam-action="filter-review"><option value="all">全部模块</option></select></label></header>
           <div id="review-list" class="review-list"></div>
         </section>
+        <section id="final-share-identity" class="final-share-identity" aria-labelledby="final-share-title" hidden>
+          <div><span>OPTIONAL SHARE NAME</span><h2 id="final-share-title">为三级挑战卡加一个名字</h2><p>可填姓名、花名或社交平台昵称；留空则显示“匿名挑战者”。</p></div>
+          <label for="final-share-name"><span>分享展示名（选填，最多 20 字）</span><input id="final-share-name" name="share-name" maxlength="20" autocomplete="off" placeholder="例如：袁威 / YX" /></label>
+          <small>仅用于当次本地生成图片，不上传、不写入浏览器、不进入统计后台。</small>
+        </section>
         <div class="exam-result-actions">
           <button id="next-level-button" type="button" data-exam-action="next-level" hidden>进入下一级</button>
-          <button type="button" data-exam-action="share-result">生成等级成绩卡</button>
+          <button id="share-result-button" type="button" data-exam-action="share-result">生成等级成绩卡</button>
           <button type="button" data-exam-action="retry">重新挑战本级</button>
           <button type="button" data-exam-action="levels">挑战其他等级</button>
           <button type="button" data-exam-action="home">返回首页</button>

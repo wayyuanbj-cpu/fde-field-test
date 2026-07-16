@@ -5,7 +5,7 @@ const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
 const url = process.env.FDE_TEST_URL ?? "http://127.0.0.1:4174/";
 const browser = await chromium.launch({ headless: true });
-const context = await browser.newContext({ viewport: { width: 1365, height: 900 } });
+const context = await browser.newContext({ viewport: { width: 1365, height: 900 }, acceptDownloads: true });
 const page = await context.newPage();
 page.setDefaultTimeout(7000);
 const errors = [];
@@ -89,6 +89,28 @@ try {
   await page.getByRole("button", { name: "进入高级" }).click();
   await page.locator("#mode-view:not([hidden])").waitFor();
   assert.match(await page.locator("#mode-title").innerText(), /高级/);
+
+  await page.getByRole("button", { name: "开始完整挑战 →" }).click();
+  await page.locator("#exam-view:not([hidden])").waitFor();
+  await fillCurrentExamWithCorrectAnswers(page, "advanced", "full");
+  await page.reload({ waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "交卷", exact: true }).click();
+  await page.getByRole("button", { name: "确认交卷" }).click();
+  await page.locator("#exam-result-view:not([hidden])").waitFor();
+  assert.equal(await page.locator("#qualification-status").innerText(), "三级挑战完成");
+  assert.equal(await page.locator("#final-share-identity").isVisible(), true);
+  assert.equal(await page.locator("#final-share-name").getAttribute("maxlength"), "20");
+  assert.match(await page.locator("#final-share-identity").innerText(), /不上传.*不写入浏览器.*不进入统计后台/s);
+  await page.locator("#final-share-name").fill("袁威 FDE");
+  await page.getByRole("button", { name: "生成三级挑战分享卡" }).click();
+  await page.locator("#exam-share-panel:not([hidden])").waitFor();
+  assert.match(await page.locator("#exam-share-status").innerText(), /袁威 FDE.*不会上传或保存/);
+  assert.ok(await page.locator("#exam-share-canvas").evaluate((canvas) => canvas.toDataURL("image/png").length > 10000));
+  assert.equal(await page.evaluate(() => JSON.stringify(localStorage).includes("袁威 FDE")), false);
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "保存等级成绩卡 PNG" }).click();
+  const download = await downloadPromise;
+  assert.equal(download.suggestedFilename(), "FDE-三级挑战-袁威 FDE.png");
 
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: "networkidle" });

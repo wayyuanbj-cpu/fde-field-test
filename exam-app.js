@@ -11,6 +11,7 @@ import {
 } from "./exam-progression.js";
 import { clearExamState, examStateKey, loadExamState, saveExamState } from "./exam-state.js";
 import { drawExamShareCard } from "./exam-share-card.js";
+import { sanitizeShareName, shareFilename } from "./share-name.js";
 
 const ACTIVE_KEY = "onex-fde-exam:active";
 const TYPE_LABELS = { single: "单选题", multiple: "多选题", judgment: "判断题" };
@@ -331,8 +332,14 @@ function renderResult() {
   const status = $("#qualification-status");
   const reason = $("#qualification-reason");
   const nextButton = $("#next-level-button");
+  const finalQualified = state.level === "advanced" && state.mode === "full" && qualification.qualifies;
+  const identityPanel = $("#final-share-identity");
+  const shareButton = $("#share-result-button");
   nextButton.hidden = !followingLevel;
   if (followingLevel) nextButton.textContent = `进入${levelDefinitions[followingLevel].shortLabel}`;
+  identityPanel.hidden = !finalQualified;
+  shareButton.textContent = finalQualified ? "生成三级挑战分享卡" : "生成等级成绩卡";
+  if (!finalQualified) $("#final-share-name").value = "";
   if (state.mode === "mock") {
     status.textContent = "模拟练习";
     reason.textContent = "模拟成绩只用于练习，不记录等级成就，不解锁下一级。";
@@ -474,8 +481,13 @@ function shareResult() {
   panel.hidden = false;
   canvas.hidden = false;
   try {
-    drawExamShareCard(canvas, state.result, levelDefinitions[state.level]);
-    status.textContent = "成绩卡已生成，可保存 PNG 分享。";
+    const final = state.level === "advanced" && state.mode === "full" && state.qualification?.qualifies === true;
+    const name = sanitizeShareName(final ? $("#final-share-name").value : "");
+    const scores = Object.fromEntries(levelOrder.map((level) => [level, state.progression.records[level]?.score]));
+    drawExamShareCard(canvas, state.result, levelDefinitions[state.level], { final, name, scores });
+    status.textContent = final
+      ? `三级挑战分享卡已生成，展示名为“${name}”。姓名不会上传或保存。`
+      : "成绩卡已生成，可保存 PNG 分享。";
   } catch {
     canvas.hidden = true;
     status.textContent = "成绩卡生成失败，成绩不受影响，请重试。";
@@ -485,7 +497,10 @@ function shareResult() {
 
 function downloadResultCard() {
   const link = document.createElement("a");
-  link.download = `FDE-${levelDefinitions[state.level].resultNoun}-成绩.png`;
+  const final = state.level === "advanced" && state.mode === "full" && state.qualification?.qualifies === true;
+  link.download = final
+    ? shareFilename($("#final-share-name").value)
+    : `FDE-${levelDefinitions[state.level].resultNoun}-成绩.png`;
   link.href = $("#exam-share-canvas").toDataURL("image/png");
   link.click();
 }
