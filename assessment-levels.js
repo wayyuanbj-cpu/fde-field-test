@@ -1,3 +1,8 @@
+export const PASS_SCORE = 70;
+export const ADVANCE_SCORE = 85;
+export const MODULE_FLOOR = 70;
+export const levelOrder = Object.freeze(["junior", "intermediate", "advanced"]);
+
 export const levelDefinitions = Object.freeze({
   junior: Object.freeze({
     id: "junior",

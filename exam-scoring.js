@@ -19,7 +19,7 @@ export function scoreQuestion(question, selected = []) {
   if (chosen.length === 0) return 0;
   if (chosen.some((index) => !answer.includes(index))) return 0;
   if (chosen.length === answer.length && chosen.every((index, offset) => index === answer[offset])) return 1;
-  return question.type === "multiple" ? 0.5 : 0;
+  return 0;
 }
 
 export function classifyExamScore(score) {
@@ -41,7 +41,7 @@ export function buildExam(level, mode, random = Math.random) {
   const definition = levelDefinitions[level];
   const bank = banks[level];
   if (!definition || !bank) throw new Error(`未知等级：${level}`);
-  if (mode === "full") return [...bank];
+  if (mode === "full") return shuffled(bank, random);
   if (mode !== "mock") throw new Error(`未知模式：${mode}`);
   return definition.modules.flatMap((module) => {
     const candidates = bank.filter((question) => question.module === module.id);
