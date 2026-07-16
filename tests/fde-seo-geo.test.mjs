@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
@@ -63,4 +63,56 @@ for (const file of ["assets/og-fde-zh.png", "assets/og-fde-en.png"]) {
   assert.equal(buffer.readUInt32BE(20), 630, `${file} height`);
 }
 
-console.log("FDE bilingual SEO/GEO document checks passed");
+const robots = contentOf("robots.txt");
+function robotGroup(userAgent) {
+  const groups = robots.split(/\n\s*\n/);
+  return groups.find((group) => new RegExp(`^User-agent:\\s*${userAgent}$`, "im").test(group)) ?? "";
+}
+for (const bot of ["Googlebot", "bingbot", "OAI-SearchBot", "PerplexityBot", "Claude-SearchBot", "Claude-User"]) {
+  const group = robotGroup(bot);
+  assert.ok(group, `${bot} robots group`);
+  assert.match(group, /^Allow:\s*\/$/im, `${bot} public allow`);
+  assert.match(group, /^Disallow:\s*\/api\/$/im, `${bot} api exclusion`);
+  assert.match(group, /^Disallow:\s*\/stats\/$/im, `${bot} stats exclusion`);
+}
+for (const bot of ["GPTBot", "ClaudeBot", "Google-Extended"]) {
+  assert.match(robotGroup(bot), /^Disallow:\s*\/$/im, `${bot} training exclusion`);
+}
+assert.match(robots, /^Sitemap:\s*https:\/\/fde\.onex\.plus\/sitemap\.xml$/im);
+
+const sitemap = contentOf("sitemap.xml");
+const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+assert.deepEqual(sitemapUrls, [
+  `${origin}/`, `${origin}/en/`, `${origin}/fde-guide/`, `${origin}/en/fde-guide/`,
+]);
+assert.equal((sitemap.match(/<lastmod>2026-07-16<\/lastmod>/g) ?? []).length, 4);
+assert.equal((sitemap.match(/hreflang="zh-CN"/g) ?? []).length, 4);
+assert.equal((sitemap.match(/hreflang="en"/g) ?? []).length, 4);
+assert.equal((sitemap.match(/hreflang="x-default"/g) ?? []).length, 4);
+
+const llms = contentOf("llms.txt");
+for (const path of ["/", "/en/", "/fde-guide/", "/en/fde-guide/"]) {
+  assert.ok(llms.includes(`${origin}${path}`), `llms public link ${path}`);
+}
+assert.match(llms, /not (?:formal )?(?:graduation|certification)|不代表正式毕业/i);
+for (const value of [robots, sitemap, llms]) {
+  assert.doesNotMatch(value, /(?:answer[-_ ]?key|答案库)/i);
+  if (value !== robots) assert.doesNotMatch(value, /\/(?:api|stats)\//);
+}
+
+const indexNowFiles = readdirSync(root).filter((file) => /^[a-f0-9]{32}\.txt$/.test(file));
+assert.equal(indexNowFiles.length, 1, "one IndexNow key file");
+const indexNowKey = indexNowFiles[0].replace(/\.txt$/, "");
+assert.equal(contentOf(indexNowFiles[0]).trim(), indexNowKey, "IndexNow filename and content match");
+
+for (const file of ["deploy/fde.onex.plus.nginx.conf", "deploy/fde.onex.plus.acme.nginx.conf"]) {
+  const nginx = contentOf(file);
+  for (const [route, type] of [["robots.txt", "text/plain"], ["sitemap.xml", "application/xml"], ["llms.txt", "text/plain"], [`${indexNowKey}.txt`, "text/plain"]]) {
+    const match = nginx.match(new RegExp(`location = /${route.replace(".", "\\.")} \\{([^}]+)\\}`, "m"));
+    assert.ok(match, `${file} exact /${route}`);
+    assert.match(match[1], /try_files\s+\$uri\s+=404;/, `${file} ${route} no fallback`);
+    assert.match(match[1], new RegExp(`default_type\\s+${type.replace("/", "\\/")};`), `${file} ${route} MIME`);
+  }
+}
+
+console.log("FDE bilingual SEO/GEO and crawler discovery checks passed");

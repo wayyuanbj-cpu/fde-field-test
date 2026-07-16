@@ -1,0 +1,50 @@
+# OneX FDE Field Test: public pages may be indexed for search and answer retrieval.
+# Private analytics and event endpoints are not public content.
+
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /stats/
+
+User-agent: bingbot
+Allow: /
+Disallow: /api/
+Disallow: /stats/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /api/
+Disallow: /stats/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+Disallow: /stats/
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /api/
+Disallow: /stats/
+
+User-agent: Claude-User
+Allow: /
+Disallow: /api/
+Disallow: /stats/
+
+# These agents are associated with model training or model improvement rather
+# than user-directed search retrieval, so the site opts out by default.
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /stats/
+
+Sitemap: https://fde.onex.plus/sitemap.xml

@@ -1,0 +1,21 @@
+# FDE Field Test
+
+> A bilingual public capability challenge and reference for Field Deployment Engineers, published by the OneX AI Community and based on the OneX FDE Assessment and Training Framework.
+
+The public site explains how an FDE connects enterprise problems, AI capability, operational constraints, and accountable delivery outcomes. It offers a 12-scenario potential profile and three sequential assessment levels: Foundation (100 questions), Delivery (60 questions), and Command (40 questions).
+
+The online challenge measures knowledge and scenario judgment. It is not formal graduation, certification, or proof of real-project capability. Formal review still requires project artifacts, a working solution, acceptance evidence, live challenge, operational controls, and stakeholder feedback.
+
+## Canonical public pages
+
+- [FDE 水平测试](https://fde.onex.plus/): Chinese public challenge and three-level assessment.
+- [FDE Field Test](https://fde.onex.plus/en/): Native-English mirror of the complete challenge.
+- [FDE 是什么？](https://fde.onex.plus/fde-guide/): Chinese reference covering the role, responsibilities, five-dimension capability model, comparisons, method, and boundaries.
+- [What Is an FDE?](https://fde.onex.plus/en/fde-guide/): English reference covering the Field Deployment Engineer role, capability model, comparisons, method, and boundaries.
+
+## Publisher and update information
+
+- Publisher: OneX AI Community
+- Reviewed: 2026-07-16
+- Reference version: 1.0
+- Preferred citation name: OneX FDE Field Test
