@@ -99,7 +99,7 @@ export const enUSExamShare = Object.freeze({
   standard: "FULL ASSESSMENT ≥ 85 · EVERY MODULE ≥ 70",
   completed: "Completed all 200 questions from Foundation through Command.",
   framework: "Based on the OneX FDE Assessment and Training Framework",
-  boundary: Object.freeze(["This is a public FDE capability challenge.", "It is not formal graduation, certification, or proof of field capability."]),
+  boundary: Object.freeze(["This is a public FDE capability challenge.", "It does not certify graduation or proven field capability."]),
   copyright: "Copyright © 2026 OneX AI Community",
   levelHeader: "FDE FIELD TEST / LEVEL ASSESSMENT",
   fullMode: "FULL ASSESSMENT",

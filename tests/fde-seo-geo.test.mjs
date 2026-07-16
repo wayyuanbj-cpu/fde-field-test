@@ -94,7 +94,7 @@ const llms = contentOf("llms.txt");
 for (const path of ["/", "/en/", "/fde-guide/", "/en/fde-guide/"]) {
   assert.ok(llms.includes(`${origin}${path}`), `llms public link ${path}`);
 }
-assert.match(llms, /not (?:formal )?(?:graduation|certification)|不代表正式毕业/i);
+assert.match(llms, /(?:not|does not constitute) (?:formal )?(?:graduation|certification)|不代表正式毕业/i);
 for (const value of [robots, sitemap, llms]) {
   assert.doesNotMatch(value, /(?:answer[-_ ]?key|答案库)/i);
   if (value !== robots) assert.doesNotMatch(value, /\/(?:api|stats)\//);

@@ -4,7 +4,7 @@
 
 The public site explains how an FDE connects enterprise problems, AI capability, operational constraints, and accountable delivery outcomes. It offers a 12-scenario potential profile and three sequential assessment levels: Foundation (100 questions), Delivery (60 questions), and Command (40 questions).
 
-The online challenge measures knowledge and scenario judgment. It is not formal graduation, certification, or proof of real-project capability. Formal review still requires project artifacts, a working solution, acceptance evidence, live challenge, operational controls, and stakeholder feedback.
+The online challenge measures knowledge and scenario judgment. It does not constitute formal graduation, professional certification, or proof of real-project capability. Formal review still requires project artifacts, a working solution, acceptance evidence, live challenge, operational controls, and stakeholder feedback.
 
 ## Canonical public pages
 

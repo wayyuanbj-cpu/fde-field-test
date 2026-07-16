@@ -1,6 +1,6 @@
 # FDE Bilingual Mirror and GEO Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Ship a native-English mirror of the complete FDE challenge and make both language versions technically discoverable, semantically understandable, and citation-ready for search engines and AI answer systems.
 
@@ -41,7 +41,7 @@
 - `scoreAssessment(answers, questionBank, content)` consumes `content.dimensionMeta`, `content.levels`, `content.adviceByDimension`, and `content.copy`.
 - `buildExam(level, mode, random, bundle = activeBundle)` and `getQuestionBank(level, bundle = activeBundle)` keep existing defaults for Chinese tests.
 
-- [ ] **Step 1: Write failing locale-contract tests**
+- [x] **Step 1: Write failing locale-contract tests**
 
 Add assertions that import both bundles and require identical assessment contracts:
 
@@ -62,13 +62,13 @@ assert.equal(normalizeLocale("zh-CN"), "zh-CN");
 assert.equal(normalizeLocale("fr"), "zh-CN");
 ```
 
-- [ ] **Step 2: Run the locale test and verify RED**
+- [x] **Step 2: Run the locale test and verify RED**
 
 Run: `node tests/fde-localization-parity.test.mjs`
 
 Expected: FAIL because `locales/index.js` and the English bundle do not exist.
 
-- [ ] **Step 3: Add the locale selector and frozen bundle shape**
+- [x] **Step 3: Add the locale selector and frozen bundle shape**
 
 Implement deterministic selection without cookies:
 
@@ -84,7 +84,7 @@ export function bundleFor(locale) {
 export const activeBundle = bundleFor(activeLocale);
 ```
 
-- [ ] **Step 4: Make quick scoring accept localized content**
+- [x] **Step 4: Make quick scoring accept localized content**
 
 Retain the scoring algorithm and move verdict/advice strings behind `content`:
 
@@ -105,11 +105,11 @@ export function scoreAssessment(answers, questionBank, content) {
 }
 ```
 
-- [ ] **Step 5: Make exam bank selection locale-aware**
+- [x] **Step 5: Make exam bank selection locale-aware**
 
 Replace static bank imports in `exam-scoring.js` with `bundle.questionBanks`, while leaving `scoreQuestion()` and `scoreExam()` language-neutral. Unknown levels and modes still throw.
 
-- [ ] **Step 6: Run existing Chinese tests and new contract tests**
+- [x] **Step 6: Run existing Chinese tests and new contract tests**
 
 Run:
 
@@ -121,7 +121,7 @@ node tests/fde-localization-parity.test.mjs
 
 Expected: all scripts print their pass messages and exit 0.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add locales assessment-levels.js scoring.js exam-scoring.js tests/fde-localization-parity.test.mjs
@@ -147,7 +147,7 @@ git commit -m "Add bilingual assessment locale contract"
 - English level questions preserve `{ id, level, module, type, answer }` and localize `{ context, prompt, options, explanation }`.
 - English terminology uses `Field Deployment Engineer`, `enterprise AI delivery`, `full challenge`, `random practice`, `advance`, and `module floor` consistently.
 
-- [ ] **Step 1: Add failing editorial-quality checks**
+- [x] **Step 1: Add failing editorial-quality checks**
 
 Require all English fields to be present, free of CJK user-facing copy, and free of common literal-translation artifacts:
 
@@ -167,25 +167,25 @@ for (const question of Object.values(en.questionBanks).flat()) {
 }
 ```
 
-- [ ] **Step 2: Run the editorial test and verify RED**
+- [x] **Step 2: Run the editorial test and verify RED**
 
 Run: `node tests/fde-localization-parity.test.mjs`
 
 Expected: FAIL on missing English content.
 
-- [ ] **Step 3: Produce the refined translation artifacts**
+- [x] **Step 3: Produce the refined translation artifacts**
 
 Follow `.baoyu-skills/baoyu-translate/EXTEND.md` and record: content/risk analysis, terminology and voice prompt, draft criticism, and final editorial decisions. Explicitly preserve distractor intent and enterprise-risk nuance; do not translate `灵根` literally.
 
-- [ ] **Step 4: Author the 12-question native-English quick test**
+- [x] **Step 4: Author the 12-question native-English quick test**
 
 Use `Could You Actually Ship as an FDE?`, `Knowing the tools is not the same as owning the outcome.`, and `Test Your FDE Instincts` as fixed editorial anchors. Preserve all quick-test scoring values exactly.
 
-- [ ] **Step 5: Author the 100/60/40 English level banks**
+- [x] **Step 5: Author the 100/60/40 English level banks**
 
 Translate each scenario as a globally credible enterprise AI delivery situation. Keep product names generic unless technically necessary, use concise answer options, and explain why the reference action is safer or more deliverable without disclosing hidden scoring logic beyond the existing Chinese review experience.
 
-- [ ] **Step 6: Run structural and editorial QA**
+- [x] **Step 6: Run structural and editorial QA**
 
 Run:
 
@@ -196,7 +196,7 @@ rg -n "[\p{Han}]" locales/en-US --glob '*.js'
 
 Expected: parity test passes; `rg` returns no user-facing Chinese strings.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add locales/en-US locales/en-US.js docs/localization/en-US tests/fde-localization-parity.test.mjs
@@ -223,7 +223,7 @@ git commit -m "Author native English FDE assessment content"
 - Existing exam state and progression keys remain unchanged so IDs restore across routes.
 - Share-card functions accept localized copy through `activeBundle.quickShare` and `activeBundle.examShare`.
 
-- [ ] **Step 1: Write failing mirror browser assertions**
+- [x] **Step 1: Write failing mirror browser assertions**
 
 At 390×844 and desktop, require:
 
@@ -238,21 +238,21 @@ assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= i
 
 The test must also answer two quick questions, switch language, and require the same question ID/position and selected answers after reload.
 
-- [ ] **Step 2: Run the mirror test and verify RED**
+- [x] **Step 2: Run the mirror test and verify RED**
 
 Run: `FDE_TEST_URL=http://127.0.0.1:4173 NODE_PATH=/Users/yuanwei/.npm/_npx/e41f203b7505f1fb/node_modules node tests/fde-english-browser.mjs`
 
 Expected: FAIL because `/en/` does not exist.
 
-- [ ] **Step 3: Build the English document with route-correct assets**
+- [x] **Step 3: Build the English document with route-correct assets**
 
 Copy the semantic structure and hooks of `index.html`, rewrite every visible string in native English, load `../styles.css`, `../exam.css`, and `../app.js`, and expose a real `中文` link. Update Chinese CTA to `测测你的 FDE 灵根` with `12 题 · 约 8 分钟`, and add a real `EN` link.
 
-- [ ] **Step 4: Localize JS-rendered UI without forking rules**
+- [x] **Step 4: Localize JS-rendered UI without forking rules**
 
 Replace inline Chinese result, error, progress, mode, qualification, review, filename, and share-status strings with keys/functions from `activeBundle.ui`. Keep event handlers, progression decisions, and scoring branches shared.
 
-- [ ] **Step 5: Preserve quick-test state during language switching**
+- [x] **Step 5: Preserve quick-test state during language switching**
 
 Store only the handoff payload in session storage:
 
@@ -268,11 +268,11 @@ Store only the handoff payload in session storage:
 
 Read and delete it on the destination page. Reject invalid versions, question IDs, answer indices, or payloads older than five minutes. Full exams continue to restore through their existing ID-based local state.
 
-- [ ] **Step 6: Localize Canvas output**
+- [x] **Step 6: Localize Canvas output**
 
 Pass English font stacks and copy to both share-card modules. Test quick, level, and final cards for non-empty pixels and long-English fit; keep the same privacy and non-certification statements.
 
-- [ ] **Step 7: Run mirror and regression tests**
+- [x] **Step 7: Run mirror and regression tests**
 
 Run:
 
@@ -284,7 +284,7 @@ FDE_TEST_URL=http://127.0.0.1:4173 NODE_PATH=/Users/yuanwei/.npm/_npx/e41f203b75
 
 Expected: all pass, with no page errors or mobile overflow.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add en index.html locale-handoff.js app.js exam-app.js share-card.js exam-share-card.js styles.css exam.css tests/fde-english-browser.mjs
@@ -308,33 +308,33 @@ git commit -m "Build complete English FDE mirror"
 - Public pages expose localized title, description, canonical, reciprocal `hreflang`, Open Graph, Twitter Card, `WebSite`, and `Organization` JSON-LD.
 - Guide pages additionally expose visible author/publisher, reviewed date, version, and matching `Article` JSON-LD.
 
-- [ ] **Step 1: Write failing SEO/GEO document tests**
+- [x] **Step 1: Write failing SEO/GEO document tests**
 
 For all four canonical pages require one H1, canonical URL, `zh-CN`/`en`/`x-default` alternates, non-empty description, OG image at 1200×630, valid JSON-LD, and visible OneX copyright/boundary copy. Require the guide fragment IDs and a role-comparison table.
 
-- [ ] **Step 2: Run the SEO/GEO test and verify RED**
+- [x] **Step 2: Run the SEO/GEO test and verify RED**
 
 Run: `node tests/fde-seo-geo.test.mjs`
 
 Expected: FAIL on missing guide pages and metadata.
 
-- [ ] **Step 3: Author the Chinese FDE reference page**
+- [x] **Step 3: Author the Chinese FDE reference page**
 
 Define FDE as the role that connects enterprise problems, AI capability, operational constraints, and accountable delivery outcomes. Explain the OneX five-part capability model, role boundaries, assessment mechanics, and public-challenge limitation in concise answer-first sections.
 
-- [ ] **Step 4: Author the English FDE reference page independently**
+- [x] **Step 4: Author the English FDE reference page independently**
 
 Use native English rather than sentence-level translation. Preserve methodology and boundaries, use `Field Deployment Engineer (FDE)` on first mention, and make comparison headings answerable without surrounding context.
 
-- [ ] **Step 5: Add localized metadata and honest structured data**
+- [x] **Step 5: Add localized metadata and honest structured data**
 
 Use the approved title directions, canonical URLs, visible publisher identity, and JSON-LD properties that exactly match the page. Do not add reviews, ratings, certificates, or unsupported FAQ rich-result claims.
 
-- [ ] **Step 6: Render bilingual social cards**
+- [x] **Step 6: Render bilingual social cards**
 
 Produce real 1200×630 PNGs using the existing FDE logo and visual system. Verify dimensions with `sips -g pixelWidth -g pixelHeight assets/og-fde-*.png` and inspect both images for clipping.
 
-- [ ] **Step 7: Run tests and commit**
+- [x] **Step 7: Run tests and commit**
 
 ```bash
 node tests/fde-seo-geo.test.mjs
@@ -359,11 +359,11 @@ git commit -m "Publish bilingual FDE authority pages"
 - Sitemap contains only `/`, `/en/`, `/fde-guide/`, `/en/fde-guide/`, with language alternates and real `lastmod`.
 - `llms.txt` links only to canonical public pages and states the public-assessment boundary.
 
-- [ ] **Step 1: Extend RED tests for crawler groups and exact assets**
+- [x] **Step 1: Extend RED tests for crawler groups and exact assets**
 
 Parse robots groups and require every search bot to allow public content while excluding `/api/` and `/stats/`. Require training groups to `Disallow: /`. Assert sitemap and `llms.txt` contain no `/stats/`, `/api/`, answer keys, or certification claims.
 
-- [ ] **Step 2: Write the public crawler files**
+- [x] **Step 2: Write the public crawler files**
 
 Use explicit groups such as:
 
@@ -379,15 +379,15 @@ Disallow: /
 
 Repeat complete rules for each specific bot because specific groups do not inherit the wildcard group.
 
-- [ ] **Step 3: Generate and publish the IndexNow key**
+- [x] **Step 3: Generate and publish the IndexNow key**
 
 Run `openssl rand -hex 16`, save the exact value as the filename and file content, and keep it public at the root. Never reuse a credential or analytics secret.
 
-- [ ] **Step 4: Add exact Nginx SEO routes**
+- [x] **Step 4: Add exact Nginx SEO routes**
 
 Serve `/robots.txt` and `/llms.txt` as `text/plain`, `/sitemap.xml` as `application/xml`, and the IndexNow key as `text/plain`. Every exact route uses `try_files $uri =404`; missing SEO assets must never fall through to `index.html`.
 
-- [ ] **Step 5: Validate files and Nginx configuration**
+- [x] **Step 5: Validate files and Nginx configuration**
 
 Run:
 
@@ -399,7 +399,7 @@ rg -n "location = /(robots.txt|sitemap.xml|llms.txt)" deploy/fde.onex.plus.nginx
 
 Expected: tests pass and all three exact locations exist.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add robots.txt sitemap.xml llms.txt *.txt deploy tests/fde-seo-geo.test.mjs
@@ -424,7 +424,7 @@ git commit -m "Configure GEO crawler discovery"
 - New source buckets: `chatgpt`, `perplexity`, `copilot`, `claude`, `gemini`; preserve existing `wechat`, `x`, `search`, `direct`, and `other` acquisition categories.
 - Dashboard response adds `locales` and `ai_sources`; existing response keys remain compatible.
 
-- [ ] **Step 1: Write failing client source-classification tests**
+- [x] **Step 1: Write failing client source-classification tests**
 
 Cover approved UTM values and referrer hosts:
 
@@ -438,7 +438,7 @@ assert.equal(payload.locale, "en");
 assert.equal("referrer" in payload, false);
 ```
 
-- [ ] **Step 2: Write failing database migration and aggregate tests**
+- [x] **Step 2: Write failing database migration and aggregate tests**
 
 Initialize a legacy `events` table without `locale`, run `initialize()`, and require the new column to exist. Record English ChatGPT and Chinese direct events and require:
 
@@ -450,19 +450,19 @@ self.assertEqual(result["locales"], [
 self.assertEqual(result["ai_sources"], [{"label": "chatgpt", "value": 1}])
 ```
 
-- [ ] **Step 3: Implement strict client normalization**
+- [x] **Step 3: Implement strict client normalization**
 
 Export `sourceOf()` for unit tests. Match only known UTM aliases and hostnames, return normalized buckets, derive locale from `<html lang>`, and never send full referrer or query data.
 
-- [ ] **Step 4: Migrate and validate the SQLite schema**
+- [x] **Step 4: Migrate and validate the SQLite schema**
 
 Add `locale TEXT` safely to existing databases using `PRAGMA table_info(events)` before `ALTER TABLE`. Add `locale` to allowed event keys and values, write it into raw events, and aggregate it through `daily_dimensions`.
 
-- [ ] **Step 5: Add dashboard AI and language panels**
+- [x] **Step 5: Add dashboard AI and language panels**
 
 Keep the admin UI Chinese. Render `AI 引用流量` and `中英文版本` panels from `ai_sources` and `locales`, including empty states and the existing date range behavior.
 
-- [ ] **Step 6: Run frontend, backend, and browser tests**
+- [x] **Step 6: Run frontend, backend, and browser tests**
 
 Run:
 
@@ -474,7 +474,7 @@ NODE_PATH=/Users/yuanwei/.npm/_npx/e41f203b7505f1fb/node_modules node tests/fde-
 
 Expected: all pass; mocked event payloads contain locale/source buckets but no full referrer, query, answers, or name.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add analytics.js backend stats tests
@@ -490,7 +490,7 @@ git commit -m "Measure bilingual and AI referral traffic"
 **Interfaces:**
 - No new runtime interface; this task verifies the integrated release candidate.
 
-- [ ] **Step 1: Run every deterministic test**
+- [x] **Step 1: Run every deterministic test**
 
 Run:
 
@@ -503,23 +503,23 @@ git diff --check
 
 Expected: all tests exit 0 and `git diff --check` prints nothing.
 
-- [ ] **Step 2: Run all browser flows against localhost**
+- [x] **Step 2: Run all browser flows against localhost**
 
 Start `python3 -m http.server 4173`, then run progression, English mirror, and stats browser scripts. Verify no console/page errors and no horizontal overflow at 390×844.
 
-- [ ] **Step 3: Inspect key screenshots**
+- [x] **Step 3: Inspect key screenshots**
 
 Capture and inspect Chinese/English landing pages, both guide pages, an English multi-select question, English final share card, and Chinese stats AI panel at desktop and mobile widths.
 
-- [ ] **Step 4: Audit search-facing content**
+- [x] **Step 4: Audit search-facing content**
 
 Confirm no hidden text, AI-directed prompt injection, fake endorsement, formal-certification claim, answer key, or private URL appears in public pages, JSON-LD, robots, sitemap, or `llms.txt`.
 
-- [ ] **Step 5: Update README**
+- [x] **Step 5: Update README**
 
 Document bilingual routes, native-English parity, guide routes, crawler/training policy, SEO assets, anonymous locale/AI source measurement, and webmaster-account steps that remain manual.
 
-- [ ] **Step 6: Mark completed plan boxes and commit**
+- [x] **Step 6: Mark completed plan boxes and commit**
 
 ```bash
 git add README.md docs/superpowers/plans/2026-07-16-fde-bilingual-geo.md
