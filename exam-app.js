@@ -3,7 +3,11 @@ import { buildExam, getQuestionBank, scoreExam } from "./exam-scoring.js";
 import {
   canAccessLevel,
   createEmptyProgression,
+  evaluateQualification,
   loadProgression,
+  nextLevel,
+  saveProgression,
+  updateProgression,
 } from "./exam-progression.js";
 import { clearExamState, examStateKey, loadExamState, saveExamState } from "./exam-state.js";
 import { drawExamShareCard } from "./exam-share-card.js";
@@ -25,6 +29,7 @@ const state = {
   reviewLimit: 10,
   progression: createEmptyProgression(),
   progressionIssue: null,
+  qualification: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -184,6 +189,7 @@ function renderMode(level) {
 function startExam(mode, restoredState = null) {
   state.mode = mode;
   state.result = null;
+  state.qualification = null;
   if (restoredState) {
     const bankById = new Map(getQuestionBank(state.level).map((question) => [question.id, question]));
     state.questions = restoredState.questionIds.map((id) => bankById.get(id)).filter(Boolean);
@@ -238,12 +244,18 @@ function renderQuestion() {
   const module = moduleDefinition(state.level, question.module);
   const selected = state.answers[question.id] ?? [];
   $("#exam-question-number").textContent = `QUESTION ${String(state.currentIndex + 1).padStart(3, "0")}`;
-  $("#exam-question-type").textContent = TYPE_LABELS[question.type];
+  const type = $("#exam-question-type");
+  const guidance = $("#exam-question-guidance");
+  const isMultiple = question.type === "multiple";
+  type.textContent = TYPE_LABELS[question.type];
+  type.classList.toggle("is-multiple", isMultiple);
+  guidance.hidden = !isMultiple;
   $("#exam-module-label").textContent = module?.label ?? question.module;
   $("#exam-question-context").textContent = question.context;
   $("#exam-question-title").textContent = question.prompt;
   $("#exam-progress-bar").style.width = `${((state.currentIndex + 1) / state.questions.length) * 100}%`;
   const options = $("#exam-options");
+  if (isMultiple) options.setAttribute("aria-describedby", "exam-question-guidance"); else options.removeAttribute("aria-describedby");
   options.replaceChildren(...question.options.map((copy, index) => {
     const label = document.createElement("label");
     label.className = "exam-option";
@@ -291,9 +303,13 @@ function goQuestion(index) {
 
 function requestSubmit() {
   const unanswered = state.questions.filter((question) => !(state.answers[question.id]?.length)).length;
-  $("#submit-copy").textContent = unanswered
+  const baseCopy = unanswered
     ? `你还有 ${unanswered} 道题未作答，未答题将按 0 分计算。`
     : "所有题目都已作答，交卷后将生成分模块成绩与错题解析。";
+  const multipleReminder = state.questions[state.currentIndex]?.type === "multiple"
+    ? " 本题为多选题：少选、多选、错选均不得分。"
+    : "";
+  $("#submit-copy").textContent = `${baseCopy}${multipleReminder}`;
   $("#submit-panel").hidden = false;
 }
 
@@ -310,6 +326,30 @@ function renderResult() {
   $("#exam-result-status").textContent = `${definition.resultNoun}${result.classification.label}`;
   $("#exam-result-score").textContent = String(result.score).padStart(2, "0");
   $("#exam-result-mode").textContent = `${state.mode === "full" ? "完整挑战" : "随机模拟"} · ${state.questions.length} 题`;
+  const qualification = state.qualification ?? evaluateQualification(state.mode, result);
+  const followingLevel = qualification.qualifies ? nextLevel(state.level) : null;
+  const status = $("#qualification-status");
+  const reason = $("#qualification-reason");
+  const nextButton = $("#next-level-button");
+  nextButton.hidden = !followingLevel;
+  if (followingLevel) nextButton.textContent = `进入${levelDefinitions[followingLevel].shortLabel}`;
+  if (state.mode === "mock") {
+    status.textContent = "模拟练习";
+    reason.textContent = "模拟成绩只用于练习，不记录等级成就，不解锁下一级。";
+  } else if (qualification.qualifies) {
+    status.textContent = state.level === "advanced" ? "三级挑战完成" : "晋级成功";
+    reason.textContent = followingLevel
+      ? `${levelDefinitions[followingLevel].shortLabel}已解锁。你已同时达到总分 85 和全模块 70 的晋级标准。`
+      : "你已完成全部 200 道三级挑战题，并满足高级晋级标准。";
+  } else if (result.score >= 70) {
+    status.textContent = "本级达标，未晋级";
+    reason.textContent = qualification.reason === "module"
+      ? `总分已达晋级线，但最低模块仅 ${qualification.lowestModuleScore} 分；每个模块须不低于 70。`
+      : `当前 ${result.score} 分已达本级基准，晋级需要总分不低于 85，且每模块不低于 70。`;
+  } else {
+    status.textContent = "未达标";
+    reason.textContent = `当前 ${result.score} 分，本级达标线为 70，晋级线为 85。`;
+  }
   $("#stat-correct").textContent = result.correct;
   $("#stat-partial").textContent = result.partial;
   $("#stat-wrong").textContent = result.incorrect;
@@ -387,6 +427,12 @@ function renderReview(moduleId, resetLimit = true) {
 function confirmSubmit() {
   $("#submit-panel").hidden = true;
   state.result = scoreExam(state.questions, state.answers);
+  state.qualification = evaluateQualification(state.mode, state.result);
+  const updated = updateProgression(state.progression, state.level, state.mode, state.result);
+  if (updated !== state.progression) {
+    state.progression = updated;
+    saveProgression(storage(), state.progression);
+  }
   const target = storage();
   if (target) clearExamState(target, examStateKey(state.level, state.mode));
   removeActivePointer();
@@ -505,6 +551,10 @@ document.addEventListener("click", (event) => {
       target.setAttribute("aria-expanded", String(open));
     },
     retry: () => startExam(state.mode),
+    "next-level": () => {
+      const followingLevel = nextLevel(state.level);
+      if (followingLevel && canAccessLevel(state.progression, followingLevel)) renderMode(followingLevel);
+    },
     "load-more-review": () => {
       state.reviewLimit += 10;
       renderReview(state.reviewModule, false);

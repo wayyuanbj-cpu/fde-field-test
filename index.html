@@ -221,15 +221,16 @@
             <p id="mode-level-code" class="eyebrow"><span>L1 / FOUNDATION</span><span>MODE SELECT</span></p>
             <h1 id="mode-title">初级 · 理论基础</h1>
             <p id="mode-description">验证进入企业 AI 交付现场所需的基础认知、方法与边界意识。</p>
+            <p class="mode-rule-copy">晋级标准：完整挑战总分 ≥ 85，且每个模块 ≥ 70。</p>
             <div id="mode-modules" class="mode-modules" aria-label="考核模块"></div>
           </div>
           <div class="mode-options">
             <article>
-              <span>FULL CHALLENGE</span><h2>完整挑战</h2><strong id="full-count">100 题</strong><p id="full-time">建议 100–140 分钟</p>
+              <span>FULL CHALLENGE</span><h2>完整挑战</h2><strong id="full-count">100 题</strong><p id="full-time">建议 100–140 分钟</p><small>计入晋级 · 必须完成本级全部题目</small>
               <button type="button" data-exam-action="start-mode" data-mode="full">开始完整挑战 →</button>
             </article>
             <article>
-              <span>RANDOM MOCK</span><h2>随机模拟</h2><strong id="mock-count">50 题</strong><p id="mock-time">建议 45–70 分钟</p>
+              <span>RANDOM MOCK</span><h2>随机模拟</h2><strong id="mock-count">50 题</strong><p id="mock-time">建议 45–70 分钟</p><small>仅用于练习 · 不记录成就，不解锁下一级</small>
               <button type="button" data-exam-action="start-mode" data-mode="mock">开始随机模拟 →</button>
             </article>
             <div id="resume-panel" class="resume-panel" hidden>
@@ -263,6 +264,7 @@
             <div class="exam-progress"><span id="exam-progress-bar"></span></div>
             <article class="exam-question-card">
               <div class="exam-question-meta"><span id="exam-question-number">QUESTION 001</span><span id="exam-question-type">单选题</span></div>
+              <p id="exam-question-guidance" class="exam-question-guidance" role="note" hidden>请选择全部正确答案，少选、多选、错选均不得分。</p>
               <p id="exam-question-context" class="exam-context"></p>
               <h1 id="exam-question-title">题目加载中</h1>
               <fieldset id="exam-options" class="exam-options"><legend class="sr-only">请选择答案</legend></fieldset>
@@ -290,6 +292,7 @@
           </div>
           <div class="exam-score-block"><strong id="exam-result-score">00</strong><span>/ 100</span><small id="exam-result-mode">随机模拟</small></div>
         </div>
+        <div class="qualification-banner" aria-live="polite"><span>PROGRESSION VERDICT</span><strong id="qualification-status">本级结果</strong><p id="qualification-reason">正在计算晋级条件。</p></div>
         <div class="exam-result-stats">
           <div><span>CORRECT</span><strong id="stat-correct">0</strong><small>完全正确</small></div>
           <div><span>PARTIAL</span><strong id="stat-partial">0</strong><small>部分正确</small></div>
@@ -305,6 +308,7 @@
           <div id="review-list" class="review-list"></div>
         </section>
         <div class="exam-result-actions">
+          <button id="next-level-button" type="button" data-exam-action="next-level" hidden>进入下一级</button>
           <button type="button" data-exam-action="share-result">生成等级成绩卡</button>
           <button type="button" data-exam-action="retry">重新挑战本级</button>
           <button type="button" data-exam-action="levels">挑战其他等级</button>
