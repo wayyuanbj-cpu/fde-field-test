@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { analyticsEnabled, createAnalyticsClient } from "../analytics.js";
+import { analyticsEnabled, createAnalyticsClient, sourceOf } from "../analytics.js";
 
 function environment(overrides = {}) {
   const local = new Map();
@@ -12,7 +12,7 @@ function environment(overrides = {}) {
   const env = {
     location: { protocol: "https:", hostname: "fde.onex.plus", search: "", href: "https://fde.onex.plus/" },
     navigator: { doNotTrack: "0", webdriver: false, userAgent: "Mozilla/5.0 (Macintosh)" },
-    document: { referrer: "" },
+    document: { referrer: "", documentElement: { lang: "zh-CN" } },
     localStorage: storage(local),
     sessionStorage: storage(session),
     crypto: { randomUUID: (() => { let index = 0; return () => `uuid-${++index}`; })() },
@@ -44,6 +44,7 @@ assert.equal(beacons[0].url, "/api/analytics/events");
 assert.equal(beacons[0].payload.event, "page_view");
 assert.equal(beacons[0].payload.source, "direct");
 assert.equal(beacons[0].payload.device, "desktop");
+assert.equal(beacons[0].payload.locale, "zh-CN");
 assert.ok(beacons[0].payload.visitor_id.startsWith("uuid-"));
 assert.ok(beacons[0].payload.session_id.startsWith("uuid-"));
 assert.equal("name" in beacons[1].payload, false);
@@ -54,5 +55,31 @@ assert.deepEqual(
 );
 assert.equal(local.size, 1);
 assert.equal(session.size, 1);
+
+for (const [referrer, expected] of [
+  ["https://chatgpt.com/c/abc", "chatgpt"],
+  ["https://www.perplexity.ai/search/abc", "perplexity"],
+  ["https://copilot.microsoft.com/", "copilot"],
+  ["https://claude.ai/", "claude"],
+  ["https://gemini.google.com/app/abc", "gemini"],
+  ["https://www.google.com/search?q=fde", "search"],
+  ["https://mp.weixin.qq.com/s/abc", "wechat"],
+]) {
+  const { env: sourceEnvironment } = environment();
+  sourceEnvironment.document.referrer = referrer;
+  assert.equal(sourceOf(sourceEnvironment), expected, referrer);
+}
+
+for (const [utm, expected] of [["openai", "chatgpt"], ["perplexity", "perplexity"], ["twitter", "x"], ["unknown-partner", "other"]]) {
+  const { env: sourceEnvironment } = environment();
+  sourceEnvironment.location.href = `https://fde.onex.plus/en/?utm_source=${utm}`;
+  assert.equal(sourceOf(sourceEnvironment), expected, utm);
+}
+
+const english = environment({ document: { referrer: "", documentElement: { lang: "en" } } });
+createAnalyticsClient(english.env).track("page_view");
+assert.equal(english.beacons[0].payload.locale, "en");
+assert.equal("referrer" in english.beacons[0].payload, false);
+assert.equal("query" in english.beacons[0].payload, false);
 
 console.log("FDE anonymous analytics client checks passed");

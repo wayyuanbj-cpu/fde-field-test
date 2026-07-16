@@ -19,6 +19,7 @@ BASE_EVENT = {
     "session_id": "session-1234567890",
     "source": "direct",
     "device": "desktop",
+    "locale": "zh-CN",
 }
 
 
@@ -40,6 +41,8 @@ class AnalyticsDatabaseTests(unittest.TestCase):
             {**BASE_EVENT, "visitor_id": "x" * 129},
             {**BASE_EVENT, "level": "expert"},
             {**BASE_EVENT, "mode": "speedrun"},
+            {**BASE_EVENT, "locale": "fr"},
+            {**BASE_EVENT, "source": "raw-referrer"},
             {**BASE_EVENT, "score": 101},
             {**BASE_EVENT, "name": "someone"},
             {**BASE_EVENT, "answers": [1, 2]},
@@ -77,6 +80,27 @@ class AnalyticsDatabaseTests(unittest.TestCase):
         self.assertEqual(result["levels"]["junior"]["complete"], 1)
         self.assertEqual(result["sources"][0], {"label": "wechat", "value": 2})
         self.assertEqual(result["scores"][0]["bucket"], "80-89")
+
+    def test_migrates_legacy_events_and_aggregates_locale_and_ai_sources(self):
+        legacy = tempfile.NamedTemporaryFile(suffix=".db")
+        conn = connect(legacy.name)
+        conn.execute("""
+            CREATE TABLE events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, occurred_at TEXT NOT NULL, day TEXT NOT NULL,
+                event TEXT NOT NULL, visitor_id TEXT NOT NULL, session_id TEXT NOT NULL,
+                source TEXT NOT NULL, device TEXT NOT NULL, level TEXT, mode TEXT, score INTEGER
+            )
+        """)
+        initialize(conn)
+        columns = {row["name"] for row in conn.execute("PRAGMA table_info(events)")}
+        self.assertIn("locale", columns)
+        record_event(conn, {**BASE_EVENT, "visitor_id": "v-en", "session_id": "s-en", "source": "chatgpt", "locale": "en"}, self.now)
+        record_event(conn, {**BASE_EVENT, "visitor_id": "v-zh", "session_id": "s-zh", "source": "direct", "locale": "zh-CN"}, self.now)
+        result = dashboard(conn, "7d", self.now)
+        self.assertEqual(result["locales"], [{"label": "en", "value": 1}, {"label": "zh-CN", "value": 1}])
+        self.assertEqual(result["ai_sources"], [{"label": "chatgpt", "value": 1}])
+        conn.close()
+        legacy.close()
 
     def test_purge_keeps_daily_rollups(self):
         old = self.now - timedelta(days=181)

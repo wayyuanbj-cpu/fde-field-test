@@ -64,7 +64,7 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.request("POST", "/api/analytics/events", raw=b"x" * 17000)["status"], 413)
         valid = {
             "event": "page_view", "visitor_id": "visitor-1", "session_id": "session-1",
-            "source": "direct", "device": "desktop",
+            "source": "direct", "device": "desktop", "locale": "en",
         }
         self.assertEqual(self.request("POST", "/api/analytics/events", valid)["status"], 204)
 

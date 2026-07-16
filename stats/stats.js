@@ -114,6 +114,8 @@ function renderDashboard(data) {
   }));
   bars($("#source-list"), data.sources);
   bars($("#device-list"), data.devices);
+  bars($("#ai-source-list"), data.ai_sources ?? []);
+  bars($("#locale-list"), data.locales ?? []);
   bars($("#score-chart"), data.scores, "bucket", "value");
   $("#score-chart").querySelectorAll(".dimension-row").forEach((row) => { row.className = "score-row"; });
 }

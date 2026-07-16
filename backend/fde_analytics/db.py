@@ -15,7 +15,10 @@ EVENTS = {
 LEVELS = {"junior", "intermediate", "advanced"}
 MODES = {"full", "mock"}
 DEVICES = {"desktop", "mobile", "tablet", "other"}
-ALLOWED_KEYS = {"event", "visitor_id", "session_id", "source", "device", "level", "mode", "score"}
+LOCALES = {"zh-CN", "en"}
+SOURCES = {"chatgpt", "perplexity", "copilot", "claude", "gemini", "wechat", "x", "search", "direct", "other"}
+AI_SOURCES = {"chatgpt", "perplexity", "copilot", "claude", "gemini"}
+ALLOWED_KEYS = {"event", "visitor_id", "session_id", "source", "device", "locale", "level", "mode", "score"}
 REQUIRED_BY_EVENT = {
     "page_view": set(),
     "quick_start": set(),
@@ -52,6 +55,7 @@ def initialize(conn):
             session_id TEXT NOT NULL,
             source TEXT NOT NULL,
             device TEXT NOT NULL,
+            locale TEXT NOT NULL DEFAULT 'zh-CN',
             level TEXT,
             mode TEXT,
             score INTEGER
@@ -129,6 +133,9 @@ def initialize(conn):
         CREATE INDEX IF NOT EXISTS idx_audit_time ON audit_log(occurred_at);
         """
     )
+    event_columns = {row["name"] for row in conn.execute("PRAGMA table_info(events)")}
+    if "locale" not in event_columns:
+        conn.execute("ALTER TABLE events ADD COLUMN locale TEXT NOT NULL DEFAULT 'zh-CN'")
     conn.commit()
 
 
@@ -155,9 +162,14 @@ def validate_event(payload):
         "session_id": _plain_string(payload.get("session_id"), "session_id"),
         "source": _plain_string(payload.get("source", "direct"), "source", 32).lower(),
         "device": payload.get("device", "other"),
+        "locale": payload.get("locale", "zh-CN"),
     }
+    if normalized["source"] not in SOURCES:
+        raise ValidationError("invalid source")
     if normalized["device"] not in DEVICES:
         raise ValidationError("invalid device")
+    if normalized["locale"] not in LOCALES:
+        raise ValidationError("invalid locale")
     missing = REQUIRED_BY_EVENT[event] - set(payload)
     if missing:
         raise ValidationError("missing required fields")
@@ -204,8 +216,8 @@ def record_event(conn, payload, now=None):
     mode = event.get("mode", "")
     with conn:
         conn.execute(
-            "INSERT INTO events(occurred_at,day,event,visitor_id,session_id,source,device,level,mode,score) VALUES(?,?,?,?,?,?,?,?,?,?)",
-            (occurred_at, day, event["event"], event["visitor_id"], event["session_id"], event["source"], event["device"], level or None, mode or None, event.get("score")),
+            "INSERT INTO events(occurred_at,day,event,visitor_id,session_id,source,device,locale,level,mode,score) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+            (occurred_at, day, event["event"], event["visitor_id"], event["session_id"], event["source"], event["device"], event["locale"], level or None, mode or None, event.get("score")),
         )
         conn.execute(
             "INSERT INTO daily_events(day,event,level,mode,count) VALUES(?,?,?,?,1) ON CONFLICT(day,event,level,mode) DO UPDATE SET count=count+1",
@@ -213,7 +225,7 @@ def record_event(conn, payload, now=None):
         )
         conn.execute("INSERT OR IGNORE INTO daily_visitors(day,visitor_id) VALUES(?,?)", (day, event["visitor_id"]))
         conn.execute("INSERT OR IGNORE INTO daily_sessions(day,session_id) VALUES(?,?)", (day, event["session_id"]))
-        for dimension in ("source", "device"):
+        for dimension in ("source", "device", "locale"):
             conn.execute(
                 "INSERT INTO daily_dimensions(day,dimension,label,count) VALUES(?,?,?,1) ON CONFLICT(day,dimension,label) DO UPDATE SET count=count+1",
                 (day, dimension, event[dimension]),
@@ -283,13 +295,16 @@ def dashboard(conn, range_key="7d", now=None):
         "SELECT bucket,SUM(count) value FROM daily_scores" + score_clause + " GROUP BY bucket ORDER BY MIN(CASE bucket WHEN '0-59' THEN 1 WHEN '60-69' THEN 2 WHEN '70-79' THEN 3 WHEN '80-89' THEN 4 ELSE 5 END)",
         score_params,
     ).fetchall()]
+    sources = dimensions("source")
     return {
         "range": range_key,
         "summary": {"pv": pv, "uv": uv, "sessions": sessions},
         "daily": daily,
         "funnel": funnel,
         "levels": levels,
-        "sources": dimensions("source"),
+        "sources": sources,
+        "ai_sources": [item for item in sources if item["label"] in AI_SOURCES],
+        "locales": dimensions("locale"),
         "devices": dimensions("device"),
         "scores": scores,
     }

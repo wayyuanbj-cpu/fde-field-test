@@ -21,6 +21,8 @@ const dashboard = {
     advanced: { start: 36, complete: 20, unlock: 0 },
   },
   sources: [{ label: "wechat", value: 720 }, { label: "direct", value: 410 }],
+  ai_sources: [{ label: "chatgpt", value: 92 }, { label: "perplexity", value: 34 }],
+  locales: [{ label: "zh-CN", value: 990 }, { label: "en", value: 290 }],
   devices: [{ label: "mobile", value: 890 }, { label: "desktop", value: 390 }],
   scores: [{ bucket: "70-79", value: 88 }, { bucket: "80-89", value: 130 }, { bucket: "90-100", value: 42 }],
 };
@@ -93,6 +95,8 @@ try {
     const { context, page, errors } = await newPage(analyst, { width: 390, height: 844 });
     await page.locator("#overview-view:not([hidden])").waitFor();
     assert.match(await page.locator("#metric-pv").innerText(), /1,280/);
+    assert.match(await page.locator("#ai-source-list").innerText(), /chatgpt.*92/s);
+    assert.match(await page.locator("#locale-list").innerText(), /zh-CN.*990.*en.*290/s);
     assert.equal(await page.locator("[data-view='users']").isHidden(), true);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), false);
     assert.deepEqual(errors, []);

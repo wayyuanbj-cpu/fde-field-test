@@ -4,6 +4,17 @@ const EVENTS = new Set([
 ]);
 const LEVELS = new Set(["junior", "intermediate", "advanced"]);
 const MODES = new Set(["full", "mock"]);
+const SOURCE_ALIASES = Object.freeze({
+  chatgpt: "chatgpt", chatgptcom: "chatgpt", openai: "chatgpt",
+  perplexity: "perplexity", perplexityai: "perplexity",
+  copilot: "copilot", copilotmicrosoftcom: "copilot", microsoft_copilot: "copilot", bing_chat: "copilot",
+  claude: "claude", claudeai: "claude", anthropic: "claude",
+  gemini: "gemini", geminigooglecom: "gemini", bard: "gemini",
+  wechat: "wechat", weixin: "wechat",
+  x: "x", twitter: "x",
+  google: "search", bing: "search", baidu: "search", duckduckgo: "search", yahoo: "search", yandex: "search",
+  direct: "direct",
+});
 const VISITOR_KEY = "onex-fde-analytics:visitor";
 const SESSION_KEY = "onex-fde-analytics:session";
 
@@ -34,20 +45,36 @@ function storedId(storage, key, environment) {
   }
 }
 
-function sourceOf(environment) {
+function normalizedCampaign(value) {
+  const key = String(value ?? "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32);
+  return SOURCE_ALIASES[key] ?? "other";
+}
+
+export function sourceOf(environment) {
   try {
     const url = new URL(environment.location.href);
     const campaign = url.searchParams.get("utm_source");
-    if (campaign) return campaign.toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32) || "campaign";
+    if (campaign) return normalizedCampaign(campaign);
     const referrer = environment.document?.referrer;
     if (!referrer) return "direct";
-    const host = new URL(referrer).hostname;
+    const host = new URL(referrer).hostname.toLowerCase();
+    if (host === url.hostname.toLowerCase()) return "direct";
+    if (/(^|\.)chatgpt\.com$|(^|\.)openai\.com$/.test(host)) return "chatgpt";
+    if (/(^|\.)perplexity\.ai$/.test(host)) return "perplexity";
+    if (/(^|\.)copilot\.microsoft\.com$/.test(host)) return "copilot";
+    if (/(^|\.)claude\.ai$/.test(host)) return "claude";
+    if (/(^|\.)gemini\.google\.com$/.test(host)) return "gemini";
     if (/weixin|wechat|qq\.com/.test(host)) return "wechat";
     if (/(^|\.)x\.com$|twitter/.test(host)) return "x";
-    return "referral";
+    if (/(^|\.)(google|bing|baidu|duckduckgo|yahoo|yandex)\./.test(host)) return "search";
+    return "other";
   } catch {
     return "direct";
   }
+}
+
+function localeOf(environment) {
+  return String(environment.document?.documentElement?.lang ?? "").toLowerCase().startsWith("en") ? "en" : "zh-CN";
 }
 
 function deviceOf(environment) {
@@ -74,6 +101,7 @@ export function createAnalyticsClient(environment = globalThis) {
       session_id: storedId(environment.sessionStorage, SESSION_KEY, environment),
       source: sourceOf(environment),
       device: deviceOf(environment),
+      locale: localeOf(environment),
       ...allowedProperties(properties),
     };
     const json = JSON.stringify(payload);
