@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#07162b" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>FDE Challenge Intelligence</title>
+    <link rel="icon" href="../logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./stats.css" />
+  </head>
+  <body>
+    <div class="grid-noise" aria-hidden="true"></div>
+    <main>
+      <section id="login-view" class="auth-view" hidden aria-labelledby="login-title">
+        <div class="auth-brand"><img src="../logo.svg" alt="" /><span>FDE FIELD TEST</span><small>PRIVATE INTELLIGENCE NODE</small></div>
+        <form id="login-form" class="auth-card">
+          <p class="code">AUTH / 01</p>
+          <h1 id="login-title">挑战数据<br /><em>控制台</em></h1>
+          <p>仅授权成员可访问。这里只展示匿名流量和转化数据。</p>
+          <label><span>账号</span><input name="username" autocomplete="username" required /></label>
+          <label><span>密码</span><input name="password" type="password" autocomplete="current-password" required /></label>
+          <p id="login-error" class="form-error" role="alert"></p>
+          <button type="submit">登录统计后台 <b>→</b></button>
+        </form>
+        <a href="../">← 返回 FDE 挑战站</a>
+      </section>
+
+      <section id="change-password-view" class="auth-view" hidden aria-labelledby="change-title">
+        <div class="auth-brand"><img src="../logo.svg" alt="" /><span>SECURITY CHECKPOINT</span><small>FIRST LOGIN PROTOCOL</small></div>
+        <form id="change-password-form" class="auth-card">
+          <p class="code">AUTH / 02</p>
+          <h1 id="change-title">首次登录<br /><em>必须改密</em></h1>
+          <p>新密码至少 12 位。改密后所有旧会话立即失效。</p>
+          <label><span>当前一次性密码</span><input name="current_password" type="password" autocomplete="current-password" required /></label>
+          <label><span>新密码</span><input name="new_password" type="password" autocomplete="new-password" minlength="12" required /></label>
+          <p id="change-error" class="form-error" role="alert"></p>
+          <button type="submit">更新密码并进入 <b>→</b></button>
+        </form>
+      </section>
+
+      <section id="app-view" class="app-shell" hidden>
+        <aside class="sidebar">
+          <a class="side-brand" href="../"><img src="../logo.svg" alt="" /><span><strong>FDE INTEL</strong><small>ONEX AI COMMUNITY</small></span></a>
+          <nav aria-label="后台导航">
+            <button type="button" data-view="overview" class="is-active"><span>01</span>数据概览</button>
+            <button type="button" data-view="users"><span>02</span>账号权限</button>
+          </nav>
+          <div class="side-account"><span id="account-role">OWNER</span><strong id="account-name">owner</strong><button id="logout-button" type="button">退出登录</button></div>
+        </aside>
+
+        <div class="app-content">
+          <header class="topbar"><div><span class="live-dot"></span>ANONYMOUS SIGNAL ONLINE</div><a href="../" target="_blank" rel="noopener">查看前台 ↗</a></header>
+
+          <section id="overview-view" class="workspace" hidden>
+            <header class="workspace-head">
+              <div><p class="code">FDE / CONVERSION INTELLIGENCE</p><h1>挑战数据概览</h1><p>只看趋势与转化，不收集姓名、答案、原始 IP 或完整浏览器标识。</p></div>
+              <div id="range-switcher" class="range-switcher" aria-label="数据范围"><button data-range="today">今日</button><button data-range="7d" class="is-active">7 天</button><button data-range="30d">30 天</button><button data-range="all">全部</button></div>
+            </header>
+            <p id="overview-error" class="workspace-error" role="alert"></p>
+            <div class="metric-grid">
+              <article><span>PAGE VIEWS</span><strong id="metric-pv">0</strong><small>页面浏览</small></article>
+              <article><span>UNIQUE VISITORS</span><strong id="metric-uv">0</strong><small>匿名访客</small></article>
+              <article><span>SESSIONS</span><strong id="metric-sessions">0</strong><small>访问会话</small></article>
+            </div>
+            <div class="dashboard-grid">
+              <article class="panel trend-panel"><header><span>TRAFFIC CURVE</span><h2>每日访问趋势</h2></header><div id="daily-chart" class="daily-chart"></div></article>
+              <article class="panel funnel-panel"><header><span>CONVERSION FUNNEL</span><h2>挑战转化漏斗</h2></header><div id="funnel-chart"></div></article>
+              <article class="panel level-panel"><header><span>LEVEL PROGRESSION</span><h2>三级挑战进度</h2></header><div id="level-chart"></div></article>
+              <article class="panel dimension-panel"><header><span>ACQUISITION</span><h2>来源与设备</h2></header><div class="dimension-columns"><section><h3>来源</h3><div id="source-list"></div></section><section><h3>设备</h3><div id="device-list"></div></section></div></article>
+              <article class="panel score-panel"><header><span>SCORE DISTRIBUTION</span><h2>等级成绩分布</h2></header><div id="score-chart"></div></article>
+            </div>
+          </section>
+
+          <section id="users-view" class="workspace" hidden>
+            <header class="workspace-head"><div><p class="code">ACCESS / ROLE CONTROL</p><h1>账号与权限</h1><p>Owner 可看数据和管理账号；Analyst 只能看数据。不开放公众注册。</p></div></header>
+            <p id="users-error" class="workspace-error" role="alert"></p>
+            <div class="users-layout">
+              <form id="create-user-form" class="create-user panel"><span>CREATE ACCESS</span><h2>创建内部账号</h2><label><span>新账号名</span><input name="username" pattern="[A-Za-z0-9_.\-]{3,32}" required /></label><label><span>角色</span><select name="role"><option value="analyst">Analyst · 只读</option><option value="owner">Owner · 管理</option></select></label><button type="submit">创建账号</button></form>
+              <div class="user-area"><div id="credential-panel" class="credential-panel" hidden role="status"><span>ONE-TIME CREDENTIAL</span><h2>请立即安全转交</h2><p>账号 <strong id="credential-user"></strong></p><p>一次性密码 <code id="credential-password"></code></p><small>此密码只显示这一次，对方首次登录必须改密。</small></div><div id="user-list" class="user-list"></div></div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="./stats.js"></script>
+  </body>
+</html>

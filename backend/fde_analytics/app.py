@@ -140,7 +140,7 @@ def create_app(db_path, now_provider=None):
                 if method != "GET":
                     return _response(start_response, 405, {"error": "method_not_allowed"})
                 if not user:
-                    return deny_auth()
+                    return _response(start_response, 200, {"user": None, "csrf": None})
                 csrf = rotate_csrf(conn, token)
                 return _response(start_response, 200, {"user": user, "csrf": csrf})
 
