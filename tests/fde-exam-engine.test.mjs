@@ -1,12 +1,16 @@
 import assert from "node:assert/strict";
 import { levelDefinitions } from "../assessment-levels.js";
-import { buildExam, classifyExamScore, scoreExam, scoreQuestion } from "../exam-scoring.js";
+import { buildExam, classifyExamScore, scoreDiagnosticQuestion, scoreExam, scoreQuestion } from "../exam-scoring.js";
 import { clearExamState, examStateKey, loadExamState, saveExamState } from "../exam-state.js";
 
 assert.equal(scoreQuestion({ type: "single", answer: [1] }, [1]), 1);
 assert.equal(scoreQuestion({ type: "single", answer: [1] }, [0]), 0);
 assert.equal(scoreQuestion({ type: "multiple", answer: [0, 2] }, [0]), 0);
 assert.equal(scoreQuestion({ type: "multiple", answer: [0, 2] }, [0, 2]), 1);
+assert.equal(scoreDiagnosticQuestion({ type: "multiple", answer: [0, 2], options: ["a", "b", "c", "d"] }, [0]), 0.5);
+assert.equal(scoreDiagnosticQuestion({ type: "multiple", answer: [0, 2], options: ["a", "b", "c", "d"] }, [0, 1]), 0);
+assert.equal(scoreDiagnosticQuestion({ type: "multiple", answer: [0, 2], options: ["a", "b", "c", "d"] }, [0, 1, 2, 3]), 0);
+assert.equal(scoreDiagnosticQuestion({ type: "single", answer: [1], options: ["a", "b"] }, [1]), 1);
 assert.equal(classifyExamScore(69).status, "not-passed");
 assert.equal(classifyExamScore(70).status, "passed");
 assert.equal(classifyExamScore(84).status, "passed");
@@ -31,11 +35,14 @@ const questions = [
 ];
 const result = scoreExam(questions, { x1: [1], x2: [0], x3: [1] });
 assert.equal(result.score, 25);
+assert.equal(result.diagnosticScore, 38);
+assert.equal(result.diagnosticEarned, 1.5);
 assert.equal(result.correct, 1);
-assert.equal(result.partial, 0);
-assert.equal(result.incorrect, 2);
+assert.equal(result.partial, 1);
+assert.equal(result.incorrect, 1);
 assert.equal(result.unanswered, 1);
 assert.deepEqual(result.moduleScores, { m1: 50, m2: 0 });
+assert.deepEqual(result.diagnosticModuleScores, { m1: 75, m2: 0 });
 assert.equal(result.review.length, 3);
 
 const criticalQuestion = {

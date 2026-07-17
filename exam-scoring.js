@@ -13,6 +13,19 @@ export function scoreQuestion(question, selected = []) {
   return 0;
 }
 
+export function scoreDiagnosticQuestion(question, selected = []) {
+  const chosen = normalized(selected);
+  const answer = normalized(question.answer);
+  if (chosen.length === 0) return 0;
+  if (question.type !== "multiple") return scoreQuestion(question, chosen);
+  const selectedCorrect = chosen.filter((index) => answer.includes(index)).length;
+  const selectedWrong = chosen.filter((index) => !answer.includes(index)).length;
+  const correctShare = answer.length ? selectedCorrect / answer.length : 0;
+  const wrongOptionCount = Math.max((question.options?.length ?? 0) - answer.length, 1);
+  const wrongShare = selectedWrong / wrongOptionCount;
+  return Math.max(0, correctShare - wrongShare);
+}
+
 export function classifyExamScore(score, bundle = activeBundle) {
   const labels = bundle.ui.exam.classification;
   if (score >= 85) return { status: "excellent", label: labels.excellent };
@@ -50,8 +63,10 @@ export function getQuestionBank(level, bundle = activeBundle) {
 export function scoreExam(questions, answers = {}, bundle = activeBundle) {
   const moduleTotals = {};
   const moduleEarned = {};
+  const moduleDiagnosticEarned = {};
   const review = [];
   let earned = 0;
+  let diagnosticEarned = 0;
   let correct = 0;
   let partial = 0;
   let incorrect = 0;
@@ -62,27 +77,36 @@ export function scoreExam(questions, answers = {}, bundle = activeBundle) {
   for (const question of questions) {
     const selected = normalized(answers[question.id]);
     const points = scoreQuestion(question, selected);
+    const diagnosticPoints = scoreDiagnosticQuestion(question, selected);
     if (question.critical === true) {
       criticalTotal += 1;
       if (points === 1) criticalCorrect += 1;
     }
     earned += points;
+    diagnosticEarned += diagnosticPoints;
     moduleTotals[question.module] = (moduleTotals[question.module] ?? 0) + 1;
     moduleEarned[question.module] = (moduleEarned[question.module] ?? 0) + points;
+    moduleDiagnosticEarned[question.module] = (moduleDiagnosticEarned[question.module] ?? 0) + diagnosticPoints;
     if (selected.length === 0) unanswered += 1;
     else if (points === 1) correct += 1;
-    else if (points === 0.5) partial += 1;
+    else if (diagnosticPoints > 0) partial += 1;
     else incorrect += 1;
-    if (points < 1) review.push({ question, selected, points });
+    if (points < 1) review.push({ question, selected, points: diagnosticPoints, strictPoints: points });
   }
 
   const score = questions.length ? Math.round((earned / questions.length) * 100) : 0;
+  const diagnosticScore = questions.length ? Math.round((diagnosticEarned / questions.length) * 100) : 0;
   const moduleScores = Object.fromEntries(
     Object.keys(moduleTotals).map((module) => [module, Math.round((moduleEarned[module] / moduleTotals[module]) * 100)]),
+  );
+  const diagnosticModuleScores = Object.fromEntries(
+    Object.keys(moduleTotals).map((module) => [module, Math.round((moduleDiagnosticEarned[module] / moduleTotals[module]) * 100)]),
   );
   return {
     score,
     earned,
+    diagnosticScore,
+    diagnosticEarned,
     correct,
     partial,
     incorrect,
@@ -91,7 +115,8 @@ export function scoreExam(questions, answers = {}, bundle = activeBundle) {
     criticalCorrect,
     criticalMisses: criticalTotal - criticalCorrect,
     moduleScores,
+    diagnosticModuleScores,
     review,
-    classification: classifyExamScore(score, bundle),
+    classification: classifyExamScore(diagnosticScore, bundle),
   };
 }

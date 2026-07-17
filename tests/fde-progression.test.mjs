@@ -37,9 +37,11 @@ assert.deepEqual([...fullIds].sort(), [...bankIds].sort(), "shuffle must preserv
 
 const passing = {
   score: 88,
+  diagnosticScore: 90,
   unanswered: 0,
   moduleScores: { alpha: 90, beta: 72 },
   criticalMisses: 0,
+  integrity: { band: "trusted", eligible: true },
 };
 assert.deepEqual(evaluateQualification("mock", passing), {
   qualifies: false,
@@ -50,6 +52,7 @@ assert.equal(evaluateQualification("full", { ...passing, unanswered: 1 }).reason
 assert.equal(evaluateQualification("full", { ...passing, score: 84 }).reason, "score");
 assert.equal(evaluateQualification("full", { ...passing, moduleScores: { alpha: 95, beta: 69 } }).reason, "module");
 assert.equal(evaluateQualification("full", { ...passing, criticalMisses: 1 }).reason, "critical");
+assert.equal(evaluateQualification("full", { ...passing, integrity: { band: "low", eligible: false } }).reason, "integrity");
 assert.deepEqual(evaluateQualification("full", passing), {
   qualifies: true,
   reason: "qualified",
@@ -57,7 +60,7 @@ assert.deepEqual(evaluateQualification("full", passing), {
 });
 
 const empty = createEmptyProgression();
-assert.deepEqual(empty, { version: 2, records: {} });
+assert.deepEqual(empty, { version: 3, records: {} });
 assert.equal(canAccessLevel(empty, "junior"), true);
 assert.equal(canAccessLevel(empty, "intermediate"), false);
 assert.equal(canAccessLevel(empty, "advanced"), false);
@@ -71,7 +74,9 @@ assert.deepEqual(mockUpdate, empty, "mock results must not create progression ev
 const juniorQualified = updateProgression(empty, "junior", "full", passing, "2026-07-16T00:00:00.000Z");
 assert.equal(juniorQualified.records.junior.qualifies, true);
 assert.equal(juniorQualified.records.junior.score, 88);
+assert.equal(juniorQualified.records.junior.diagnosticScore, 90);
 assert.equal(juniorQualified.records.junior.criticalMisses, 0);
+assert.equal(juniorQualified.records.junior.integrityBand, "trusted");
 assert.equal(canAccessLevel(juniorQualified, "intermediate"), true);
 assert.equal(canAccessLevel(juniorQualified, "advanced"), false);
 
