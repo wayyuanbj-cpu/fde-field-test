@@ -7,9 +7,9 @@ import {
 } from "../question-rigor.js";
 
 const expected = {
-  junior: { total: 100, types: { single: 60, multiple: 30, judgment: 10 }, critical: 10 },
-  intermediate: { total: 60, types: { single: 48, multiple: 12, judgment: 0 }, critical: 8 },
-  advanced: { total: 40, types: { single: 30, multiple: 10, judgment: 0 }, critical: 6 },
+  junior: { total: 100, types: { single: 60, multiple: 30, judgment: 10 }, critical: 10, absoluteCueMax: 0.20 },
+  intermediate: { total: 60, types: { single: 48, multiple: 12, judgment: 0 }, critical: 8, absoluteCueMax: 0.12 },
+  advanced: { total: 40, types: { single: 30, multiple: 10, judgment: 0 }, critical: 6, absoluteCueMax: 0.12 },
 };
 
 for (const locale of ["zh-CN", "en-US"]) {
@@ -24,6 +24,10 @@ for (const locale of ["zh-CN", "en-US"]) {
     assert.equal(analysis.total, contract.total, `${locale} ${level} total`);
     assert.deepEqual(analysis.types, contract.types, `${locale} ${level} types`);
     assert.equal(analysis.criticalCount, contract.critical, `${locale} ${level} critical count`);
+    assert.ok(
+      analysis.distractorAbsoluteCueRate <= contract.absoluteCueMax,
+      `${locale} ${level} absolute distractor cue rate ${analysis.distractorAbsoluteCueRate}/${contract.absoluteCueMax}`,
+    );
   }
 }
 

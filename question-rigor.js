@@ -1,7 +1,7 @@
 const BANK_CONTRACTS = Object.freeze({
-  junior: Object.freeze({ total: 100, types: Object.freeze({ single: 60, multiple: 30, judgment: 10 }), critical: 10 }),
-  intermediate: Object.freeze({ total: 60, types: Object.freeze({ single: 48, multiple: 12, judgment: 0 }), critical: 8 }),
-  advanced: Object.freeze({ total: 40, types: Object.freeze({ single: 30, multiple: 10, judgment: 0 }), critical: 6 }),
+  junior: Object.freeze({ total: 100, types: Object.freeze({ single: 60, multiple: 30, judgment: 10 }), critical: 10, absoluteCueMax: 0.20 }),
+  intermediate: Object.freeze({ total: 60, types: Object.freeze({ single: 48, multiple: 12, judgment: 0 }), critical: 8, absoluteCueMax: 0.12 }),
+  advanced: Object.freeze({ total: 40, types: Object.freeze({ single: 30, multiple: 10, judgment: 0 }), critical: 6, absoluteCueMax: 0.12 }),
 });
 
 const BANNED_CUES = Object.freeze({
@@ -21,6 +21,11 @@ const BANNED_CUES = Object.freeze({
     /delete (?:the )?(?:evidence|logs?|records?)/iu,
     /assume all (?:the )?risk/iu,
   ],
+});
+
+const ABSOLUTE_CUES = Object.freeze({
+  "zh-CN": /只|所有|全部|完全|无限|任意|自然|不要|无需|不提供|随机|最大|最贵|最小|直接|统一|永不|不发生|忽略|关闭监控|凭经验|现场印象|自行判断|等.+再|简单/u,
+  "en-US": /\bonly\b|\bevery\b|\ball\b|\balways\b|\bnever\b|\bunlimited\b|\bimmediately\b|\bmaximum\b|\blargest\b|\bsmallest\b|\bwithout\b|\bwait for\b|\bautomatically\b/iu,
 });
 
 export function optionLength(copy, locale) {
@@ -56,6 +61,7 @@ function optionMetrics(questions, locale, answerIndexes, optionCopy) {
   let uniqueLongestCorrect = 0;
   let singleCount = 0;
   let maxWithinQuestionLengthRatio = 0;
+  let distractorAbsoluteCues = 0;
   const lengthRatioViolations = [];
 
   for (const question of questions) {
@@ -75,6 +81,7 @@ function optionMetrics(questions, locale, answerIndexes, optionCopy) {
       } else {
         distractorLength += lengths[index];
         distractorCount += 1;
+        if (ABSOLUTE_CUES[locale]?.test(options[index])) distractorAbsoluteCues += 1;
       }
     });
 
@@ -91,6 +98,7 @@ function optionMetrics(questions, locale, answerIndexes, optionCopy) {
     correctDistractorLengthRatio: rounded(ratio(correctLength, correctCount) / ratio(distractorLength, distractorCount)),
     uniqueLongestCorrectRate: rounded(ratio(uniqueLongestCorrect, singleCount)),
     maxWithinQuestionLengthRatio: rounded(maxWithinQuestionLengthRatio),
+    distractorAbsoluteCueRate: rounded(ratio(distractorAbsoluteCues, distractorCount)),
     lengthRatioViolations,
   };
 }
@@ -181,6 +189,9 @@ export function validateRigorContract(bundle, locale) {
     if (analysis.total !== contract.total) errors.push(`${label}: total ${analysis.total}/${contract.total}`);
     if (!sameCounts(analysis.types, contract.types)) errors.push(`${label}: type counts ${JSON.stringify(analysis.types)}`);
     if (analysis.criticalCount !== contract.critical) errors.push(`${label}: critical count ${analysis.criticalCount}/${contract.critical}`);
+    if (analysis.distractorAbsoluteCueRate > contract.absoluteCueMax) {
+      errors.push(`${label}: absolute distractor cue rate ${analysis.distractorAbsoluteCueRate} exceeds ${contract.absoluteCueMax}`);
+    }
     if (analysis.criticalTypeViolations.length) errors.push(`${label}: missing boolean critical flags in ${analysis.criticalTypeViolations.length} items`);
     if (analysis.multipleAnswerViolations.length) errors.push(`${label}: invalid multi-answer counts in ${analysis.multipleAnswerViolations.length} items`);
     if (analysis.types.single) {

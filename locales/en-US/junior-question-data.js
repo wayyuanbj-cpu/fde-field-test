@@ -4,6 +4,40 @@ const single = (context, prompt, options, answer, explanation, critical = false)
 const multiple = (context, prompt, options, answer, explanation, critical = false) => ({ type: "multiple", context, prompt, options, answer, explanation, critical });
 const judgment = (context, prompt, answer, explanation, critical = false) => ({ type: "judgment", context, prompt, options: ["True", "False"], answer: [answer], explanation, critical });
 
+const distractorRewrites = Object.freeze({
+  "Approve refunds and update financial records": "Draft a refund recommendation for business review",
+  "The model calculates totals; rules check field formats": "The model calculates totals; rules validate numeric ranges",
+  "Business users manually recalculate every amount": "Business users sample-check high-value amounts",
+  "Only long-standing vendors receive automated approval": "Set automated approval limits from vendor history",
+  "Upload all prior meeting materials together": "Upload meeting notes from the previous two years",
+  "Keep only the opening and closing sections": "Summarize each chapter into a condensed manual",
+  "Use the maximum context for every request": "Reserve longer context for complex requests",
+  "Route every request to the largest model": "Move to a stronger model without changing the workflow",
+  "More randomness in generated responses": "Increase sampling temperature for more varied phrasing",
+  "Only examples that are easy to pass": "Use examples with a strong historical success rate",
+  "Describe all field relationships in prose": "Describe the main field relationships in prose",
+  "Treat extracted text as the authoritative original": "Use extracted text as the initial structured record",
+  "Check only whether page counts match": "Reconcile page count and file size",
+  "Procurement staff who will not use the system": "Procurement staff who understand the business objective",
+  "Random employees with no feedback expectation": "Sample a user group proportionally across departments",
+  "Remove every sentence written as a command": "Preprocess external passages written as commands",
+  "Use a larger model to infer intent": "Use a more capable model to infer content intent",
+  "Let the model decide every missing fact": "Let the model fill gaps from documented defaults",
+  "Review only the final conclusion": "Review the conclusion first, then sample intermediate steps",
+  "Ignore the gap and continue": "Use a documented default for the missing value",
+  "Upload only the first half of each conversation": "Use the most recent conversation segment as context",
+  "Use the page text as the system instruction": "Place page content in a high-priority prompt section",
+  "Keep only the final recommendation": "Provide the final recommendation with a short rationale",
+  "Combine every step into one request": "Combine adjacent steps in one request",
+  "Copy the prompt and replace every number": "Copy the prompt and manually sample-check key numbers",
+  "Only the current production prompt": "Keep production prompt and later changes",
+  "Let the model choose a requirement randomly": "Let the model choose by textual similarity",
+  "Format every number to two decimals": "Format numbers to two decimals for financial display",
+  "Let the editor choose from experience": "Have a senior editor compare both versions independently",
+  "Identical titles for every policy file": "Rewrite policy titles under a department naming convention",
+  "Only by hiding unauthorized filenames in the interface": "Hide unauthorized file entry points by role",
+});
+
 const modules = [
   {
     id: "ai-foundation",
@@ -141,6 +175,7 @@ function materialize(module, record) {
     level: "junior",
     module,
     ...record,
+    options: record.options.map((option) => distractorRewrites[option] ?? option),
   });
 }
 
