@@ -21,8 +21,8 @@ async function findMultipleQuestion(targetPage) {
   throw new Error("No multiple question found");
 }
 
-async function fillCurrentExamWithCorrectAnswers(targetPage, level, mode, { fast = false } = {}) {
-  await targetPage.evaluate(async ({ examLevel, examMode, fastAttempt }) => {
+async function fillCurrentExamWithCorrectAnswers(targetPage, level, mode, { fast = false, missCritical = false } = {}) {
+  await targetPage.evaluate(async ({ examLevel, examMode, fastAttempt, missOneCritical }) => {
     const { getQuestionBank } = await import("./exam-scoring.js");
     const { examStateKey } = await import("./exam-state.js");
     const bank = new Map(getQuestionBank(examLevel).map((question) => [question.id, question]));
@@ -32,6 +32,14 @@ async function fillCurrentExamWithCorrectAnswers(targetPage, level, mode, { fast
     saved.answers = Object.fromEntries(saved.questionIds.map((id) => [id, bank.get(id).answer
       .map((originalIndex) => saved.optionOrders[id].indexOf(originalIndex))
       .sort((a, b) => a - b)]));
+    if (missOneCritical) {
+      const criticalId = saved.questionIds.find((id) => bank.get(id).critical === true);
+      if (!criticalId) throw new Error("No critical question found");
+      const correctIndexes = new Set(saved.answers[criticalId]);
+      const wrongIndex = saved.optionOrders[criticalId].findIndex((_, index) => !correctIndexes.has(index));
+      if (wrongIndex < 0) throw new Error("No incorrect option found for critical question");
+      saved.answers[criticalId] = [wrongIndex];
+    }
     const now = Date.now();
     const duration = fastAttempt ? 10_000 : saved.integrity.suggestedMinutes * 60_000 * 0.6;
     saved.integrity.startedAt = now - duration;
@@ -40,7 +48,7 @@ async function fillCurrentExamWithCorrectAnswers(targetPage, level, mode, { fast
     saved.integrity.answerChanges = Object.fromEntries(saved.questionIds.map((id) => [id, 0]));
     saved.integrity.hiddenSince = null;
     localStorage.setItem(key, JSON.stringify(saved));
-  }, { examLevel: level, examMode: mode, fastAttempt: fast });
+  }, { examLevel: level, examMode: mode, fastAttempt: fast, missOneCritical: missCritical });
 }
 
 try {
@@ -81,6 +89,18 @@ try {
   await page.getByRole("button", { name: "交卷", exact: true }).click();
   assert.match(await page.locator("#submit-copy").innerText(), /多选题.*少选.*不得分/);
   await page.getByRole("button", { name: "继续答题" }).click();
+
+  await fillCurrentExamWithCorrectAnswers(page, "junior", "full", { missCritical: true });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator("#exam-view:not([hidden])").waitFor();
+  await page.getByRole("button", { name: "交卷", exact: true }).click();
+  await page.getByRole("button", { name: "确认交卷" }).click();
+  await page.locator("#exam-result-view:not([hidden])").waitFor();
+  assert.equal(await page.locator("#qualification-status").innerText(), "关键边界未通过");
+  assert.match(await page.locator("#qualification-reason").innerText(), /1 道关键题答错/);
+  assert.equal(await page.locator("#next-level-button").isHidden(), true);
+  await page.locator("button[data-exam-action='retry']").click();
+  await page.locator("#exam-view:not([hidden])").waitFor();
 
   for (let index = 0; index < 5; index += 1) await page.locator("#exam-view").dispatchEvent("copy");
   await fillCurrentExamWithCorrectAnswers(page, "junior", "full", { fast: true });
