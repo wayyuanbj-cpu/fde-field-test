@@ -168,10 +168,11 @@ export function drawExamShareCard(canvas, result, definition, options = {}) {
   context.fillText(copy.assessmentScore, 82, 392);
   context.fillStyle = "#f4f7fb";
   context.font = "760 250px SFMono-Regular, Consolas, monospace";
-  context.fillText(String(result.score).padStart(2, "0"), 62, 650);
+  context.fillText(String(result.diagnosticScore ?? result.score).padStart(2, "0"), 62, 650);
   context.fillStyle = definition.accent;
-  context.font = "22px SFMono-Regular, Consolas, monospace";
-  context.fillText(`/ 100  ${definition.resultNoun}${result.classification.label}`, 525, 614);
+  context.font = "18px SFMono-Regular, Consolas, monospace";
+  const confidence = bundle.ui.exam.confidenceLabels[result.integrity?.band] ?? "";
+  context.fillText(`/ 100  ${bundle.ui.exam.strictScoreLabel} ${result.score} · ${confidence}`, 525, 614);
 
   context.fillStyle = "rgba(146,164,184,.18)";
   context.fillRect(80, 750, 920, 1);
@@ -180,7 +181,7 @@ export function drawExamShareCard(canvas, result, definition, options = {}) {
   context.fillText(copy.moduleProfile, 82, 805);
 
   definition.modules.forEach((module, index) => {
-    const value = result.moduleScores[module.id] ?? 0;
+    const value = result.diagnosticModuleScores?.[module.id] ?? result.moduleScores[module.id] ?? 0;
     const y = 862 + index * 72;
     context.fillStyle = "#dbe5f1";
     context.font = `600 19px ${copy.font}`;

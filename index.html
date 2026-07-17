@@ -194,7 +194,7 @@
         <div class="level-intro">
           <p class="eyebrow"><span>FDE PROGRESSION</span><span>NO LEVEL SKIPPING</span></p>
           <h2 id="level-title">高级不是选的。<br />是一关关考出来的。</h2>
-          <p>所有人从初级开始。完整挑战总分达到 85，且每个模块不低于 70，才能解锁下一级。</p>
+          <p>所有人从初级开始。严格分达到 85、每模块不低于 70、关键题零错且答题可信，才能解锁下一级。</p>
         </div>
         <div id="progression-path" class="progression-path" aria-label="FDE 三级晋级路径">
           <div data-path-level="junior"><span>01</span><strong>初级</strong><small>必经起点</small></div>
@@ -246,7 +246,7 @@
             <p id="mode-level-code" class="eyebrow"><span>L1 / FOUNDATION</span><span>MODE SELECT</span></p>
             <h2 id="mode-title">初级 · 理论基础</h2>
             <p id="mode-description">验证进入企业 AI 交付现场所需的基础认知、方法与边界意识。</p>
-            <p class="mode-rule-copy">晋级标准：完整挑战总分 ≥ 85，且每个模块 ≥ 70。</p>
+            <p class="mode-rule-copy">晋级标准：严格分 ≥ 85、每模块 ≥ 70、关键题零错，且答题可信度有效。</p>
             <div id="mode-modules" class="mode-modules" aria-label="考核模块"></div>
           </div>
           <div class="mode-options">
@@ -287,6 +287,7 @@
               <p class="onex-credit compact"><strong>基于 OneX FDE 考核培训体系</strong><span>版权所有 © 2026 OneX AI 社区</span></p>
             </header>
             <div class="exam-progress"><span id="exam-progress-bar"></span></div>
+            <p class="exam-integrity-notice"><strong>独立作答</strong><span>题序与选项已随机；复制题目或频繁离开页面会降低答题可信度。</span></p>
             <article class="exam-question-card">
               <div class="exam-question-meta"><span id="exam-question-number">QUESTION 001</span><span id="exam-question-type">单选题</span></div>
               <p id="exam-question-guidance" class="exam-question-guidance" role="note" hidden>请选择全部正确答案，少选、多选、错选均不得分。</p>
@@ -315,9 +316,13 @@
             <h2 id="exam-result-title">你的现场判断，已经留下证据。</h2>
             <p class="certification-boundary">本结果仅代表本次线上理论或情境题表现，不等于完整 FDE 能力认证。</p>
           </div>
-          <div class="exam-score-block"><strong id="exam-result-score">00</strong><span>/ 100</span><small id="exam-result-mode">随机模拟</small></div>
+          <div class="exam-score-block"><strong id="exam-result-score">00</strong><span>/ 100</span><em id="exam-ability-label">能力分</em><small id="exam-result-mode">随机模拟</small></div>
         </div>
         <div class="qualification-banner" aria-live="polite"><span>PROGRESSION VERDICT</span><strong id="qualification-status">本级结果</strong><p id="qualification-reason">正在计算晋级条件。</p></div>
+        <div class="exam-evidence-grid">
+          <article><span id="exam-strict-title">严格分</span><strong id="exam-strict-score">00</strong><small>晋级按全部题目严格匹配计分</small></article>
+          <article><span id="exam-confidence-title">答题可信度</span><strong id="exam-confidence-label">待计算</strong><small id="exam-confidence-reason">仅依据本次作答环境信号。</small></article>
+        </div>
         <div class="exam-result-stats">
           <div><span>CORRECT</span><strong id="stat-correct">0</strong><small>完全正确</small></div>
           <div><span>PARTIAL</span><strong id="stat-partial">0</strong><small>部分正确</small></div>

@@ -11,6 +11,17 @@ export const zhCNUI = Object.freeze({
   exam: Object.freeze({
     typeLabels: Object.freeze({ single: "单选题", multiple: "多选题", judgment: "判断题" }),
     classification: Object.freeze({ excellent: "优秀", passed: "达标", "not-passed": "未达标" }),
+    abilityScoreLabel: "能力分",
+    strictScoreLabel: "严格分",
+    confidenceLabel: "答题可信度",
+    confidenceLabels: Object.freeze({ trusted: "可信", review: "信号有限", low: "需要独立复测" }),
+    confidenceReason: (band) => band === "trusted"
+      ? "答题节奏和页面行为未见明显异常。"
+      : band === "review"
+        ? "存在少量异常信号，本次结果仍可用于能力诊断。"
+        : "多类异常信号叠加，本次结果不作为晋级证据。",
+    integrityStatus: "答题可信度不足",
+    integrityReason: "本次答题环境信号不足，请在不切换页面、不复制题目的情况下独立复测。",
     storageUnavailable: "当前浏览器未开放本地保存；请勿刷新页面",
     storageSaved: "已自动保存到当前浏览器",
     storageFailed: "保存失败；本页仍可继续答题",
@@ -27,7 +38,7 @@ export const zhCNUI = Object.freeze({
     pathLocked: (previous) => `🔒 ${previous}晋级后解锁`,
     backResult: "← 返回我的结果",
     backHome: "← 返回首页",
-    progressionUpgraded: "晋级规则已升级：关键边界题实行零容错，旧进度不作为新版晋级证据。",
+    progressionUpgraded: "晋级规则已升级：关键题零容错，并增加答题可信度要求；旧进度不作为新版晋级证据。",
     quickProfileOnly: "快速测试只生成能力侧写，所有人都需从初级开始晋级。",
     previousLevel: "前一级",
     noSkipping: (previous) => `不能跳级。请先完成${previous}完整挑战并达到晋级标准。`,
@@ -54,8 +65,8 @@ export const zhCNUI = Object.freeze({
     mockReason: "模拟成绩只用于练习，不记录等级成就，不解锁下一级。",
     qualifiedStatus: (level) => level === "advanced" ? "三级挑战完成" : "晋级成功",
     qualifiedReason: (nextLabel) => nextLabel
-      ? `${nextLabel}已解锁。你已同时达到总分 85 和全模块 70 的晋级标准。`
-      : "你已完成全部 200 道三级挑战题，并满足高级晋级标准。",
+      ? `${nextLabel}已解锁。你已达到严格分 85、全模块 70、关键题零错和可信度要求。`
+      : "你已完成全部 200 道三级挑战题，并满足严格分、关键题和可信度标准。",
     passedStatus: "本级达标，未晋级",
     criticalStatus: "关键边界未通过",
     criticalReason: (count) => `你有 ${count} 道关键题答错。即使总分达线，本次也不能晋级。`,
@@ -68,7 +79,7 @@ export const zhCNUI = Object.freeze({
     unanswered: "未作答",
     noWrongAll: "本次没有错题。接下来请用真实项目验证能力。",
     noWrongModule: "该模块没有错题。",
-    reviewStatus: (points, selected) => points === 0.5 ? "部分正确" : selected.length ? "错误" : "未作答",
+    reviewStatus: (points, selected) => points > 0 && points < 1 ? "部分正确" : selected.length ? "错误" : "未作答",
     moreReview: (count) => `继续查看剩余 ${count} 题`,
     finalShareSuccess: (name) => `三级挑战分享卡已生成，展示名为“${name}”。姓名不会上传或保存。`,
     anonymousName: "匿名挑战者",
@@ -98,7 +109,7 @@ export const zhCNExamShare = Object.freeze({
   levelScores: Object.freeze(["L1 / 初级", "L2 / 中级", "L3 / 高级"]),
   scoreHeading: "BEST SCORE BY LEVEL",
   standardHeading: "PROGRESSION STANDARD",
-  standard: "完整挑战 ≥ 85 · 每模块 ≥ 70 · 不可跳级",
+  standard: "严格分 ≥ 85 · 每模块 ≥ 70 · 关键题零错 · 可信作答",
   completed: "从初级到高级，已完成全部 200 道传播型能力挑战。",
   framework: "基于 OneX FDE 考核培训体系",
   boundary: Object.freeze(["本结果来自传播型 FDE 能力挑战，", "不代表正式毕业、认证或真实项目能力结论。"]),
@@ -106,7 +117,7 @@ export const zhCNExamShare = Object.freeze({
   levelHeader: "FDE FIELD TEST / LEVEL ASSESSMENT",
   fullMode: "FULL CHALLENGE",
   mockMode: "RANDOM MOCK",
-  assessmentScore: "ASSESSMENT SCORE",
+  assessmentScore: "ABILITY SCORE / 能力分",
   moduleProfile: "MODULE PROFILE",
   onlineBoundary: "线上测评结果不等于完整 FDE 能力认证",
   font: '"PingFang SC", "Microsoft YaHei", sans-serif',

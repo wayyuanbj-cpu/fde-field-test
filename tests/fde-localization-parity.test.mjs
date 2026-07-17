@@ -43,6 +43,20 @@ for (const level of ["junior", "intermediate", "advanced"]) {
       optionCount: options.length,
     })),
   );
+  assert.equal(typeof zh.levels[level].fullMinutes, "number");
+  assert.equal(en.levels[level].fullMinutes, zh.levels[level].fullMinutes);
+  assert.equal(en.levels[level].mockMinutes, zh.levels[level].mockMinutes);
+}
+
+for (const bundle of [zh, en]) {
+  const exam = bundle.ui.exam;
+  assert.equal(typeof exam.abilityScoreLabel, "string");
+  assert.equal(typeof exam.strictScoreLabel, "string");
+  assert.equal(typeof exam.confidenceLabel, "string");
+  assert.deepEqual(Object.keys(exam.confidenceLabels).sort(), ["low", "review", "trusted"]);
+  assert.equal(typeof exam.confidenceReason, "function");
+  assert.equal(typeof exam.integrityStatus, "string");
+  assert.equal(typeof exam.integrityReason, "string");
 }
 
 assert.equal(normalizeLocale("en"), "en-US");

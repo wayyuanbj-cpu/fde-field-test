@@ -21,21 +21,32 @@ async function findMultipleQuestion(targetPage) {
   throw new Error("No multiple question found");
 }
 
-async function fillCurrentExamWithCorrectAnswers(targetPage, level, mode) {
-  await targetPage.evaluate(async ({ examLevel, examMode }) => {
+async function fillCurrentExamWithCorrectAnswers(targetPage, level, mode, { fast = false } = {}) {
+  await targetPage.evaluate(async ({ examLevel, examMode, fastAttempt }) => {
     const { getQuestionBank } = await import("./exam-scoring.js");
+    const { examStateKey } = await import("./exam-state.js");
     const bank = new Map(getQuestionBank(examLevel).map((question) => [question.id, question]));
-    const key = `onex-fde-exam:1:${examLevel}:${examMode}`;
+    const key = examStateKey(examLevel, examMode);
     const saved = JSON.parse(localStorage.getItem(key));
-    saved.answers = Object.fromEntries(saved.questionIds.map((id) => [id, [...bank.get(id).answer]]));
+    if (!saved?.optionOrders || !saved?.integrity) throw new Error("version-3 attempt state is incomplete");
+    saved.answers = Object.fromEntries(saved.questionIds.map((id) => [id, bank.get(id).answer
+      .map((originalIndex) => saved.optionOrders[id].indexOf(originalIndex))
+      .sort((a, b) => a - b)]));
+    const now = Date.now();
+    const duration = fastAttempt ? 10_000 : saved.integrity.suggestedMinutes * 60_000 * 0.6;
+    saved.integrity.startedAt = now - duration;
+    saved.integrity.questionFirstSeen = Object.fromEntries(saved.questionIds.map((id) => [id, now - (fastAttempt ? 1_000 : 10_000)]));
+    saved.integrity.questionAnsweredAt = Object.fromEntries(saved.questionIds.map((id) => [id, now - (fastAttempt ? 500 : 5_000)]));
+    saved.integrity.answerChanges = Object.fromEntries(saved.questionIds.map((id) => [id, 0]));
+    saved.integrity.hiddenSince = null;
     localStorage.setItem(key, JSON.stringify(saved));
-  }, { examLevel: level, examMode: mode });
+  }, { examLevel: level, examMode: mode, fastAttempt: fast });
 }
 
 try {
-  await page.goto(url, { waitUntil: "networkidle" });
+  await page.goto(url, { waitUntil: "domcontentloaded" });
   await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: "networkidle" });
+  await page.reload({ waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "直接参加分级考核" }).click();
   await page.locator("#level-view:not([hidden])").waitFor();
 
@@ -62,18 +73,38 @@ try {
   assert.equal(await page.locator("#exam-question-guidance").getAttribute("role"), "note");
   assert.ok((await page.locator("#exam-question-type").getAttribute("class"))?.includes("is-multiple"));
   assert.ok(await page.locator("#exam-options input[type='checkbox']").count() > 0);
+  const optionSnapshot = await page.locator("#exam-options .exam-option-copy").allInnerTexts();
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator("#exam-view:not([hidden])").waitFor();
+  assert.deepEqual(await page.locator("#exam-options .exam-option-copy").allInnerTexts(), optionSnapshot, "resume must preserve randomized option order");
 
   await page.getByRole("button", { name: "交卷", exact: true }).click();
   assert.match(await page.locator("#submit-copy").innerText(), /多选题.*少选.*不得分/);
   await page.getByRole("button", { name: "继续答题" }).click();
 
+  for (let index = 0; index < 5; index += 1) await page.locator("#exam-view").dispatchEvent("copy");
+  await fillCurrentExamWithCorrectAnswers(page, "junior", "full", { fast: true });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator("#exam-view:not([hidden])").waitFor();
+  await page.getByRole("button", { name: "交卷", exact: true }).click();
+  await page.getByRole("button", { name: "确认交卷" }).click();
+  await page.locator("#exam-result-view:not([hidden])").waitFor();
+  assert.equal(await page.locator("#qualification-status").innerText(), "答题可信度不足");
+  assert.match(await page.locator("#qualification-reason").innerText(), /独立复测/);
+  assert.equal(await page.locator("#next-level-button").isHidden(), true);
+  await page.locator("button[data-exam-action='retry']").click();
+  await page.locator("#exam-view:not([hidden])").waitFor();
+
   await fillCurrentExamWithCorrectAnswers(page, "junior", "full");
-  await page.reload({ waitUntil: "networkidle" });
+  await page.reload({ waitUntil: "domcontentloaded" });
   await page.locator("#exam-view:not([hidden])").waitFor();
   await page.getByRole("button", { name: "交卷", exact: true }).click();
   await page.getByRole("button", { name: "确认交卷" }).click();
   await page.locator("#exam-result-view:not([hidden])").waitFor();
   assert.equal(await page.locator("#qualification-status").innerText(), "晋级成功");
+  assert.equal(await page.locator("#exam-result-score").innerText(), "100");
+  assert.equal(await page.locator("#exam-strict-score").innerText(), "100");
+  assert.equal(await page.locator("#exam-confidence-label").innerText(), "可信");
   assert.match(await page.locator("#qualification-reason").innerText(), /中级已解锁/);
   await page.getByRole("button", { name: "进入中级" }).click();
   await page.locator("#mode-view:not([hidden])").waitFor();
@@ -82,7 +113,7 @@ try {
   await page.getByRole("button", { name: "开始完整挑战 →" }).click();
   await page.locator("#exam-view:not([hidden])").waitFor();
   await fillCurrentExamWithCorrectAnswers(page, "intermediate", "full");
-  await page.reload({ waitUntil: "networkidle" });
+  await page.reload({ waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "交卷", exact: true }).click();
   await page.getByRole("button", { name: "确认交卷" }).click();
   assert.equal(await page.locator("#qualification-status").innerText(), "晋级成功");
@@ -93,7 +124,7 @@ try {
   await page.getByRole("button", { name: "开始完整挑战 →" }).click();
   await page.locator("#exam-view:not([hidden])").waitFor();
   await fillCurrentExamWithCorrectAnswers(page, "advanced", "full");
-  await page.reload({ waitUntil: "networkidle" });
+  await page.reload({ waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "交卷", exact: true }).click();
   await page.getByRole("button", { name: "确认交卷" }).click();
   await page.locator("#exam-result-view:not([hidden])").waitFor();
@@ -113,13 +144,13 @@ try {
   assert.equal(download.suggestedFilename(), "FDE-三级挑战-袁威 FDE.png");
 
   await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: "networkidle" });
+  await page.reload({ waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "直接参加分级考核" }).click();
   await page.locator("#level-view:not([hidden])").waitFor();
   await page.locator("button[data-level='junior']").click();
   await page.getByRole("button", { name: "开始随机模拟 →" }).click();
   await fillCurrentExamWithCorrectAnswers(page, "junior", "mock");
-  await page.reload({ waitUntil: "networkidle" });
+  await page.reload({ waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "交卷", exact: true }).click();
   await page.getByRole("button", { name: "确认交卷" }).click();
   assert.equal(await page.locator("#qualification-status").innerText(), "模拟练习");
