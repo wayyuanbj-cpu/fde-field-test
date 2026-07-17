@@ -39,6 +39,7 @@ const passing = {
   score: 88,
   unanswered: 0,
   moduleScores: { alpha: 90, beta: 72 },
+  criticalMisses: 0,
 };
 assert.deepEqual(evaluateQualification("mock", passing), {
   qualifies: false,
@@ -48,6 +49,7 @@ assert.deepEqual(evaluateQualification("mock", passing), {
 assert.equal(evaluateQualification("full", { ...passing, unanswered: 1 }).reason, "incomplete");
 assert.equal(evaluateQualification("full", { ...passing, score: 84 }).reason, "score");
 assert.equal(evaluateQualification("full", { ...passing, moduleScores: { alpha: 95, beta: 69 } }).reason, "module");
+assert.equal(evaluateQualification("full", { ...passing, criticalMisses: 1 }).reason, "critical");
 assert.deepEqual(evaluateQualification("full", passing), {
   qualifies: true,
   reason: "qualified",
@@ -55,7 +57,7 @@ assert.deepEqual(evaluateQualification("full", passing), {
 });
 
 const empty = createEmptyProgression();
-assert.deepEqual(empty, { version: 1, records: {} });
+assert.deepEqual(empty, { version: 2, records: {} });
 assert.equal(canAccessLevel(empty, "junior"), true);
 assert.equal(canAccessLevel(empty, "intermediate"), false);
 assert.equal(canAccessLevel(empty, "advanced"), false);
@@ -69,6 +71,7 @@ assert.deepEqual(mockUpdate, empty, "mock results must not create progression ev
 const juniorQualified = updateProgression(empty, "junior", "full", passing, "2026-07-16T00:00:00.000Z");
 assert.equal(juniorQualified.records.junior.qualifies, true);
 assert.equal(juniorQualified.records.junior.score, 88);
+assert.equal(juniorQualified.records.junior.criticalMisses, 0);
 assert.equal(canAccessLevel(juniorQualified, "intermediate"), true);
 assert.equal(canAccessLevel(juniorQualified, "advanced"), false);
 
@@ -76,7 +79,7 @@ const weakerRetry = updateProgression(
   juniorQualified,
   "junior",
   "full",
-  { score: 92, unanswered: 0, moduleScores: { alpha: 99, beta: 65 } },
+  { score: 92, unanswered: 0, moduleScores: { alpha: 99, beta: 65 }, criticalMisses: 0 },
   "2026-07-17T00:00:00.000Z",
 );
 assert.deepEqual(weakerRetry, juniorQualified, "a non-qualifying retry must not replace qualifying evidence");
@@ -85,7 +88,7 @@ const betterRetry = updateProgression(
   juniorQualified,
   "junior",
   "full",
-  { score: 91, unanswered: 0, moduleScores: { alpha: 93, beta: 75 } },
+  { score: 91, unanswered: 0, moduleScores: { alpha: 93, beta: 75 }, criticalMisses: 0 },
   "2026-07-18T00:00:00.000Z",
 );
 assert.equal(betterRetry.records.junior.score, 91);
@@ -95,7 +98,7 @@ const allQualified = updateProgression(
   betterRetry,
   "intermediate",
   "full",
-  { score: 90, unanswered: 0, moduleScores: { alpha: 92, beta: 74 } },
+  { score: 90, unanswered: 0, moduleScores: { alpha: 92, beta: 74 }, criticalMisses: 0 },
   "2026-07-19T00:00:00.000Z",
 );
 assert.equal(canAccessLevel(allQualified, "advanced"), true);

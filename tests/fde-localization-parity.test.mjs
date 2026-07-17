@@ -26,18 +26,20 @@ for (const level of ["junior", "intermediate", "advanced"]) {
   assert.equal(zh.questionBanks[level].length, expected[level]);
   assert.equal(en.questionBanks[level].length, expected[level]);
   assert.deepEqual(
-    en.questionBanks[level].map(({ id, type, module, answer, options }) => ({
+    en.questionBanks[level].map(({ id, type, module, answer, critical, options }) => ({
       id,
       type,
       module,
       answer,
+      critical,
       optionCount: options.length,
     })),
-    zh.questionBanks[level].map(({ id, type, module, answer, options }) => ({
+    zh.questionBanks[level].map(({ id, type, module, answer, critical, options }) => ({
       id,
       type,
       module,
       answer,
+      critical,
       optionCount: options.length,
     })),
   );

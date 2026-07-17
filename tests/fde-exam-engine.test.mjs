@@ -38,6 +38,19 @@ assert.equal(result.unanswered, 1);
 assert.deepEqual(result.moduleScores, { m1: 50, m2: 0 });
 assert.equal(result.review.length, 3);
 
+const criticalQuestion = {
+  id: "c1",
+  type: "single",
+  module: "safety",
+  critical: true,
+  answer: [1],
+  options: ["a", "b", "c", "d"],
+};
+const criticalResult = scoreExam([criticalQuestion], { c1: [0] });
+assert.equal(criticalResult.criticalTotal, 1);
+assert.equal(criticalResult.criticalCorrect, 0);
+assert.equal(criticalResult.criticalMisses, 1);
+
 class MemoryStorage {
   constructor() { this.data = new Map(); }
   getItem(key) { return this.data.get(key) ?? null; }
