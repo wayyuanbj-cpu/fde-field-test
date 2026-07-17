@@ -1824,4 +1824,4 @@ export const juniorQuestions = Object.freeze([
     ],
     "explanation": "透明规则有助于公平和可复制交付。"
   }
-].map((question) => Object.freeze(question)));
+].map((question) => Object.freeze({ ...question, critical: false })));

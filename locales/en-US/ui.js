@@ -27,7 +27,7 @@ export const enUSUI = Object.freeze({
     pathLocked: (previous) => `🔒 Qualify at ${previous} first`,
     backResult: "← Back to My Result",
     backHome: "← Back to Home",
-    progressionUpgraded: "Progression rules have changed. Older upper-level progress is not accepted as qualification evidence.",
+    progressionUpgraded: "Progression rules have changed: critical-boundary questions now allow zero misses, so older progress is not accepted as qualification evidence.",
     quickProfileOnly: "The quick test creates a capability profile only. Everyone starts the level path at Foundation.",
     previousLevel: "the previous level",
     noSkipping: (previous) => `No level skipping. Complete the ${previous} full assessment and meet the qualification standard first.`,
@@ -57,6 +57,8 @@ export const enUSUI = Object.freeze({
       ? `${nextLabel} is now unlocked. You met both the 85 overall score and the 70 module-floor requirement.`
       : "You completed all 200 questions and met the Command-level qualification standard.",
     passedStatus: "Level Standard Met · Not Qualified",
+    criticalStatus: "Critical Boundary Not Met",
+    criticalReason: (count) => `You missed ${count} critical-boundary question${count === 1 ? "" : "s"}. Even with a qualifying score, this attempt cannot unlock the next level.`,
     moduleFloorReason: (score) => `Your total reached the qualification line, but the lowest module was ${score}. Every module must reach 70.`,
     advanceScoreReason: (score) => `Your score of ${score} meets the level standard. Qualification requires 85 overall and at least 70 in every module.`,
     failedStatus: "Below the Level Standard",

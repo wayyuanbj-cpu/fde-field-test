@@ -1,4 +1,4 @@
-const STATE_VERSION = 1;
+const STATE_VERSION = 2;
 
 export function examStateKey(level, mode) {
   return `onex-fde-exam:${STATE_VERSION}:${level}:${mode}`;

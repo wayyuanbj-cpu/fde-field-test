@@ -5,7 +5,7 @@ import {
   levelOrder,
 } from "./assessment-levels.js";
 
-export const PROGRESSION_VERSION = 1;
+export const PROGRESSION_VERSION = 2;
 export const PROGRESSION_KEY = `onex-fde-progression:${PROGRESSION_VERSION}`;
 
 export function createEmptyProgression() {
@@ -23,6 +23,9 @@ export function evaluateQualification(mode, result) {
   if ((result?.unanswered ?? 0) > 0) return { qualifies: false, reason: "incomplete", lowestModuleScore: lowest };
   if ((result?.score ?? 0) < ADVANCE_SCORE) return { qualifies: false, reason: "score", lowestModuleScore: lowest };
   if (lowest < MODULE_FLOOR) return { qualifies: false, reason: "module", lowestModuleScore: lowest };
+  if ((result?.criticalMisses ?? 0) > 0) {
+    return { qualifies: false, reason: "critical", lowestModuleScore: lowest, criticalMisses: result.criticalMisses };
+  }
   return { qualifies: true, reason: "qualified", lowestModuleScore: lowest };
 }
 
@@ -51,6 +54,7 @@ export function updateProgression(current, level, mode, result, now = new Date()
     score: Number(result.score) || 0,
     lowestModuleScore: evaluation.lowestModuleScore,
     moduleScores: { ...(result.moduleScores ?? {}) },
+    criticalMisses: Number(result.criticalMisses) || 0,
     qualifies: evaluation.qualifies,
     completedAt: now,
   };
@@ -75,6 +79,7 @@ export function nextLevel(level) {
 function validRecord(level, record) {
   if (!levelDefinitions[level] || !record || typeof record !== "object") return false;
   if (!Number.isFinite(record.score) || !Number.isFinite(record.lowestModuleScore)) return false;
+  if (!Number.isFinite(record.criticalMisses) || record.criticalMisses < 0) return false;
   if (typeof record.qualifies !== "boolean" || !record.moduleScores || typeof record.moduleScores !== "object") return false;
   return Object.values(record.moduleScores).every(Number.isFinite);
 }

@@ -349,6 +349,9 @@ function renderResult() {
   } else if (qualification.qualifies) {
     status.textContent = ui.qualifiedStatus(state.level);
     reason.textContent = ui.qualifiedReason(followingLevel ? levelDefinitions[followingLevel].shortLabel : null);
+  } else if (qualification.reason === "critical") {
+    status.textContent = ui.criticalStatus;
+    reason.textContent = ui.criticalReason(qualification.criticalMisses);
   } else if (result.score >= 70) {
     status.textContent = ui.passedStatus;
     reason.textContent = qualification.reason === "module"

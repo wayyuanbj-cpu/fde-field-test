@@ -27,7 +27,7 @@ export const zhCNUI = Object.freeze({
     pathLocked: (previous) => `🔒 ${previous}晋级后解锁`,
     backResult: "← 返回我的结果",
     backHome: "← 返回首页",
-    progressionUpgraded: "晋级规则已升级，旧的中高级进度不作为晋级证据。",
+    progressionUpgraded: "晋级规则已升级：关键边界题实行零容错，旧进度不作为新版晋级证据。",
     quickProfileOnly: "快速测试只生成能力侧写，所有人都需从初级开始晋级。",
     previousLevel: "前一级",
     noSkipping: (previous) => `不能跳级。请先完成${previous}完整挑战并达到晋级标准。`,
@@ -57,6 +57,8 @@ export const zhCNUI = Object.freeze({
       ? `${nextLabel}已解锁。你已同时达到总分 85 和全模块 70 的晋级标准。`
       : "你已完成全部 200 道三级挑战题，并满足高级晋级标准。",
     passedStatus: "本级达标，未晋级",
+    criticalStatus: "关键边界未通过",
+    criticalReason: (count) => `你有 ${count} 道关键题答错。即使总分达线，本次也不能晋级。`,
     moduleFloorReason: (score) => `总分已达晋级线，但最低模块仅 ${score} 分；每个模块须不低于 70。`,
     advanceScoreReason: (score) => `当前 ${score} 分已达本级基准，晋级需要总分不低于 85，且每模块不低于 70。`,
     failedStatus: "未达标",

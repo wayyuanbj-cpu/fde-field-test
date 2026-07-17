@@ -56,10 +56,16 @@ export function scoreExam(questions, answers = {}, bundle = activeBundle) {
   let partial = 0;
   let incorrect = 0;
   let unanswered = 0;
+  let criticalTotal = 0;
+  let criticalCorrect = 0;
 
   for (const question of questions) {
     const selected = normalized(answers[question.id]);
     const points = scoreQuestion(question, selected);
+    if (question.critical === true) {
+      criticalTotal += 1;
+      if (points === 1) criticalCorrect += 1;
+    }
     earned += points;
     moduleTotals[question.module] = (moduleTotals[question.module] ?? 0) + 1;
     moduleEarned[question.module] = (moduleEarned[question.module] ?? 0) + points;
@@ -81,6 +87,9 @@ export function scoreExam(questions, answers = {}, bundle = activeBundle) {
     partial,
     incorrect,
     unanswered,
+    criticalTotal,
+    criticalCorrect,
+    criticalMisses: criticalTotal - criticalCorrect,
     moduleScores,
     review,
     classification: classifyExamScore(score, bundle),
