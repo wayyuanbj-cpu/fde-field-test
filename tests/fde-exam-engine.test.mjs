@@ -66,10 +66,28 @@ class MemoryStorage {
 }
 
 const storage = new MemoryStorage();
-const state = { level: "junior", mode: "full", questionIds: ["J001", "J002"], answers: { J001: [1] }, currentIndex: 1 };
+const state = {
+  level: "junior",
+  mode: "full",
+  questionIds: ["J001", "J002"],
+  optionOrders: { J001: [0, 1, 2, 3], J002: [2, 0, 3, 1] },
+  integrity: { version: 1, startedAt: 0 },
+  answers: { J001: [1] },
+  currentIndex: 1,
+};
 const key = examStateKey("junior", "full");
+assert.match(key, /onex-fde-exam:3:/);
 assert.equal(saveExamState(storage, key, state), true);
 assert.equal(loadExamState(storage, key, new Set(state.questionIds)).valid, true);
+const saved = JSON.parse(storage.getItem(key));
+saved.version = 2;
+storage.setItem(key, JSON.stringify(saved));
+assert.equal(loadExamState(storage, key, new Set(state.questionIds)).reason, "version");
+saveExamState(storage, key, state);
+const withoutOptions = JSON.parse(storage.getItem(key));
+delete withoutOptions.optionOrders;
+storage.setItem(key, JSON.stringify(withoutOptions));
+assert.equal(loadExamState(storage, key, new Set(state.questionIds)).reason, "options");
 clearExamState(storage, key);
 assert.equal(loadExamState(storage, key, new Set(state.questionIds)).reason, "missing");
 
