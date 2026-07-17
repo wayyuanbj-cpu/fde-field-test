@@ -52,15 +52,16 @@ Expected: FAIL with `ERR_MODULE_NOT_FOUND` for `exam-integrity.js`.
 
 - [ ] **Step 3: Implement the immutable session model**
 
-Use the approved capped rules:
+Use the approved capped rules. Correlated speed signals share one capped contribution, so speed alone cannot produce a `low` band:
 
 ```js
 const evidence = (review, low, value) => value >= low ? 4 : value >= review ? 2 : 0;
 risk += evidence(2, 5, clipboardAttempts);
 risk += evidence(4, 9, visibilityExits);
 risk += evidence(90_000, 300_000, hiddenMs);
-risk += evidence(0.25, 0.50, fastAnswerShare);
-risk += durationRatio < 0.18 ? 4 : durationRatio < 0.30 ? 2 : 0;
+const fastRisk = evidence(0.25, 0.50, fastAnswerShare);
+const durationRisk = durationRatio < 0.18 ? 4 : durationRatio < 0.30 ? 2 : 0;
+risk += Math.max(fastRisk, durationRisk);
 ```
 
 Fast answers are answered less than 3,000 ms after first view. `recordIntegrityEvent()` accepts only `hidden`, `visible`, `copy`, `cut`, `paste`, and `contextmenu`; unknown types leave the session unchanged.
@@ -262,6 +263,8 @@ git commit -m "feat: add FDE answer confidence experience"
 ```
 
 ### Task 5: Document and run the combined release gate
+
+**Implementation status:** Tasks 1–4 are complete in commits `e46e216`, `d032f2f`, `4be2d1a`, and `3387e04`. The remaining work in this task is the combined release gate and deployment.
 
 **Files:**
 - Modify: `README.md`
