@@ -13,7 +13,7 @@ page.on("console", (message) => { if (message.type() === "error") errors.push(me
 page.on("pageerror", (error) => errors.push(error.message));
 
 try {
-  await page.goto(new URL("en/", baseUrl).href, { waitUntil: "networkidle" });
+  await page.goto(new URL("en/", baseUrl).href, { waitUntil: "domcontentloaded" });
   assert.equal(await page.locator("html").getAttribute("lang"), "en");
   assert.match(await page.locator("#landing-title").innerText(), /Could You Actually\s+Ship as an FDE\?/);
   assert.match(await page.locator("[data-action='start']").innerText(), /Test Your FDE Instincts.*12 QUESTIONS.*8 MIN/s);
@@ -43,7 +43,7 @@ try {
   assert.equal(await page.locator("#options-list input").nth(1).isChecked(), true);
 
   await page.evaluate(() => localStorage.clear());
-  await page.goto(new URL("en/", baseUrl).href, { waitUntil: "networkidle" });
+  await page.goto(new URL("en/", baseUrl).href, { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "Take the Level Assessments" }).click();
   await page.locator("#level-view:not([hidden])").waitFor();
   assert.equal(await page.locator("button[data-level='junior']").isEnabled(), true);
@@ -52,6 +52,8 @@ try {
   await page.getByRole("button", { name: /Start Full Assessment/ }).click();
   await page.locator("#exam-view:not([hidden])").waitFor();
   assert.doesNotMatch(await page.locator("#exam-view").innerText(), /[\u3400-\u9fff]/u);
+  const examText = await page.locator("#exam-view").innerText();
+  assert.match(examText, /Answer confidence|independent assessment/i);
 
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   assert.deepEqual(errors, [], errors.join(" | "));

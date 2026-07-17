@@ -11,6 +11,17 @@ export const enUSUI = Object.freeze({
   exam: Object.freeze({
     typeLabels: Object.freeze({ single: "Single Select", multiple: "Multiple Select", judgment: "True or False" }),
     classification: Object.freeze({ excellent: "Excellent", passed: "Meets Standard", "not-passed": "Below Standard" }),
+    abilityScoreLabel: "Ability Score",
+    strictScoreLabel: "Strict Score",
+    confidenceLabel: "Answer Confidence",
+    confidenceLabels: Object.freeze({ trusted: "Trusted", review: "Limited Signals", low: "Independent Retake Required" }),
+    confidenceReason: (band) => band === "trusted"
+      ? "Timing and page behavior show no material anomaly."
+      : band === "review"
+        ? "A small number of signals were limited; this result remains useful for diagnosis."
+        : "Multiple risk signals overlap, so this attempt is not accepted as progression evidence.",
+    integrityStatus: "Answer Confidence Not Sufficient",
+    integrityReason: "This attempt does not contain enough independent-answering signals. Retake it without leaving or copying the assessment.",
     storageUnavailable: "Local saving is unavailable in this browser. Do not refresh this page.",
     storageSaved: "Automatically saved in this browser",
     storageFailed: "Saving failed. You can continue on this page.",
@@ -27,7 +38,7 @@ export const enUSUI = Object.freeze({
     pathLocked: (previous) => `🔒 Qualify at ${previous} first`,
     backResult: "← Back to My Result",
     backHome: "← Back to Home",
-    progressionUpgraded: "Progression rules have changed. Older upper-level progress is not accepted as qualification evidence.",
+    progressionUpgraded: "Progression now requires zero critical misses and sufficient answer confidence. Older progress is not accepted as qualification evidence.",
     quickProfileOnly: "The quick test creates a capability profile only. Everyone starts the level path at Foundation.",
     previousLevel: "the previous level",
     noSkipping: (previous) => `No level skipping. Complete the ${previous} full assessment and meet the qualification standard first.`,
@@ -54,9 +65,11 @@ export const enUSUI = Object.freeze({
     mockReason: "Practice scores are for learning only. They do not create a level record or unlock the next assessment.",
     qualifiedStatus: (level) => level === "advanced" ? "Three-Level Challenge Complete" : "Qualified for the Next Level",
     qualifiedReason: (nextLabel) => nextLabel
-      ? `${nextLabel} is now unlocked. You met both the 85 overall score and the 70 module-floor requirement.`
-      : "You completed all 200 questions and met the Command-level qualification standard.",
+      ? `${nextLabel} is now unlocked. You met the strict-score, module-floor, critical-boundary, and confidence requirements.`
+      : "You completed all 200 questions and met the strict score, critical-boundary, and confidence standards.",
     passedStatus: "Level Standard Met · Not Qualified",
+    criticalStatus: "Critical Boundary Not Met",
+    criticalReason: (count) => `You missed ${count} critical-boundary question${count === 1 ? "" : "s"}. Even with a qualifying score, this attempt cannot unlock the next level.`,
     moduleFloorReason: (score) => `Your total reached the qualification line, but the lowest module was ${score}. Every module must reach 70.`,
     advanceScoreReason: (score) => `Your score of ${score} meets the level standard. Qualification requires 85 overall and at least 70 in every module.`,
     failedStatus: "Below the Level Standard",
@@ -66,7 +79,7 @@ export const enUSUI = Object.freeze({
     unanswered: "Unanswered",
     noWrongAll: "No incorrect answers in this attempt. Validate the capability with real project evidence next.",
     noWrongModule: "No incorrect answers in this module.",
-    reviewStatus: (points, selected) => points === 0.5 ? "Partially Correct" : selected.length ? "Incorrect" : "Unanswered",
+    reviewStatus: (points, selected) => points > 0 && points < 1 ? "Partially Correct" : selected.length ? "Incorrect" : "Unanswered",
     moreReview: (count) => `Show ${count} More Questions`,
     finalShareSuccess: (name) => `Your three-level share card is ready for ${name}. The display name was not uploaded or saved.`,
     anonymousName: "Anonymous Challenger",
@@ -96,7 +109,7 @@ export const enUSExamShare = Object.freeze({
   levelScores: Object.freeze(["L1 / FOUNDATION", "L2 / DELIVERY", "L3 / COMMAND"]),
   scoreHeading: "BEST SCORE BY LEVEL",
   standardHeading: "PROGRESSION STANDARD",
-  standard: "FULL ASSESSMENT ≥ 85 · EVERY MODULE ≥ 70",
+  standard: "STRICT ≥ 85 · MODULES ≥ 70 · ZERO CRITICAL MISSES · TRUSTED ATTEMPT",
   completed: "Completed all 200 questions from Foundation through Command.",
   framework: "Based on the OneX FDE Assessment and Training Framework",
   boundary: Object.freeze(["This is a public FDE capability challenge.", "It does not certify graduation or proven field capability."]),
@@ -104,7 +117,7 @@ export const enUSExamShare = Object.freeze({
   levelHeader: "FDE FIELD TEST / LEVEL ASSESSMENT",
   fullMode: "FULL ASSESSMENT",
   mockMode: "PRACTICE SET",
-  assessmentScore: "ASSESSMENT SCORE",
+  assessmentScore: "ABILITY SCORE",
   moduleProfile: "MODULE PROFILE",
   onlineBoundary: "An online result is not full FDE certification",
   font: 'Inter, Arial, sans-serif',

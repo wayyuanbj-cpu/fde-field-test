@@ -132,7 +132,9 @@
 .exam-toolbar > div { display: flex; justify-content: center; gap: 24px; color: var(--steel); font: 9px/1 var(--mono); letter-spacing: .09em; }
 .exam-progress { height: 3px; background: rgba(146,164,184,.13); }
 .exam-progress span { display: block; width: 1%; height: 100%; background: var(--orange); transition: width .2s ease; }
-.exam-question-card { width: min(920px, 100%); min-height: 590px; margin: 58px auto 0; }
+.exam-integrity-notice { width: min(920px, 100%); margin: 24px auto 0; padding: 12px 14px; display: flex; gap: 12px; border: 1px solid rgba(93,140,255,.25); background: rgba(41,98,255,.07); color: var(--steel); font-size: 11px; line-height: 1.6; }
+.exam-integrity-notice strong { flex: 0 0 auto; color: var(--cobalt-soft); font: 9px/1.8 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+.exam-question-card { width: min(920px, 100%); min-height: 590px; margin: 36px auto 0; }
 .exam-question-meta { display: flex; gap: 18px; color: var(--cobalt-soft); font: 9px/1 var(--mono); letter-spacing: .11em; }
 .exam-question-meta span:last-child { color: var(--orange); }
 .exam-question-meta #exam-question-type.is-multiple { padding: 7px 9px; margin: -7px -9px; background: var(--orange); color: #fff; font-weight: 800; }
@@ -172,12 +174,18 @@
 .exam-score-block { min-width: 310px; text-align: right; }
 .exam-score-block strong { font: 750 clamp(110px, 14vw, 210px)/.75 var(--mono); letter-spacing: -.12em; color: #07162b; }
 .exam-score-block > span { color: #3155be; font: 12px/1 var(--mono); }
+.exam-score-block em { display: block; margin-top: 16px; color: #3155be; font: 700 10px/1 var(--mono); font-style: normal; letter-spacing: .12em; text-transform: uppercase; }
 .exam-score-block small { display: block; margin-top: 20px; color: #51657c; font: 9px/1 var(--mono); letter-spacing: .1em; }
-.exam-result-stats { margin-top: 62px; display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid rgba(10,24,42,.15); }
+.exam-result-stats { margin-top: 18px; display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid rgba(10,24,42,.15); }
 .qualification-banner { margin-top: 26px; padding: 20px 22px; border: 1px solid rgba(41,98,255,.24); border-left: 5px solid #2962ff; background: rgba(255,255,255,.66); display: grid; grid-template-columns: auto 1fr; gap: 8px 22px; align-items: baseline; }
 .qualification-banner > span { grid-row: 1 / 3; color: #3155be; font: 8px/1.3 var(--mono); letter-spacing: .1em; }
 .qualification-banner strong { font-size: 22px; }
 .qualification-banner p { margin: 0; color: #51657c; font-size: 13px; line-height: 1.6; }
+.exam-evidence-grid { margin-top: 18px; display: grid; grid-template-columns: minmax(220px, .42fr) minmax(320px, .58fr); gap: 18px; }
+.exam-evidence-grid article { min-height: 126px; padding: 20px 22px; border: 1px solid rgba(10,24,42,.15); background: rgba(255,255,255,.66); }
+.exam-evidence-grid span { color: #3155be; font: 8px/1 var(--mono); letter-spacing: .11em; text-transform: uppercase; }
+.exam-evidence-grid strong { display: block; margin-top: 18px; font: 700 30px/1.1 var(--mono); }
+.exam-evidence-grid small { display: block; margin-top: 10px; color: #697c90; font-size: 11px; line-height: 1.55; }
 .exam-result-stats > div { min-height: 126px; padding: 18px; border-right: 1px solid rgba(10,24,42,.15); }
 .exam-result-stats > div:last-child { border-right: 0; }
 .exam-result-stats span { color: #3155be; font: 8px/1 var(--mono); letter-spacing: .1em; }
@@ -280,6 +288,7 @@
   .exam-toolbar { min-height: 62px; grid-template-columns: auto 1fr; gap: 16px; }
   .exam-toolbar > div { justify-content: flex-end; flex-direction: column; align-items: flex-end; gap: 5px; }
   .exam-toolbar .onex-credit { display: none; }
+  .exam-integrity-notice { align-items: flex-start; flex-direction: column; }
   .exam-question-card { min-height: 560px; margin-top: 36px; }
   .exam-question-card h2 { font-size: 30px; }
   .exam-options { grid-template-columns: 1fr; }
@@ -292,6 +301,7 @@
   .exam-result-top h2 { font-size: 48px; }
   .exam-score-block { min-width: 0; text-align: left; }
   .exam-score-block strong { font-size: 132px; }
+  .exam-evidence-grid { grid-template-columns: 1fr; }
   .exam-result-stats { grid-template-columns: 1fr 1fr; }
   .exam-result-stats > div:nth-child(2) { border-right: 0; }
   .exam-result-stats > div:nth-child(-n+2) { border-bottom: 1px solid rgba(10,24,42,.15); }

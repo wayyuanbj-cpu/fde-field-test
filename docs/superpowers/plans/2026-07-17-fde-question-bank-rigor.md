@@ -332,6 +332,8 @@ git commit -m "test: verify strict bilingual FDE progression"
 
 ### Task 8: Full verification, GitHub push, Aliyun deploy, and live audit
 
+**Implementation status:** Tasks 1–7 and the bilingual bank rebuild are complete. Answer confidence, dual scoring, option randomization, and version-3 resume behavior were added under `2026-07-17-fde-integrity-confidence.md`; only the combined release gate and deployment remain.
+
 **Files:**
 - Modify only if verification exposes an in-scope defect.
 
@@ -381,4 +383,3 @@ Expected: deploy script reports Nginx and analytics health success and prints th
 Run live deterministic fetch checks for `/`, `/en/`, `/fde-guide/`, `/en/fde-guide/`, `/stats/`, `/robots.txt`, `/sitemap.xml`, and `/llms.txt`; then run the progression and English browser tests with `FDE_TEST_URL=https://fde.onex.plus/`.
 
 Expected: public pages return 200, stats remains protected as designed, the stricter question bank is served, and both live browser flows pass.
-

@@ -38,7 +38,20 @@ for (const patch of [
 const { env, beacons, local, session } = environment();
 const client = createAnalyticsClient(env);
 assert.equal(client.track("page_view", { name: "secret", answers: [1], score: 99 }), true);
-assert.equal(client.track("level_complete", { level: "junior", mode: "full", score: 88, name: "secret" }), true);
+assert.equal(client.track("level_complete", {
+  level: "junior",
+  mode: "full",
+  score: 88,
+  confidence: "low",
+  visibility: 2,
+  clipboard: 3,
+  fast: 1,
+  duration: 2,
+  name: "secret",
+  answers: { J001: [1] },
+  questionIds: ["J001"],
+  timestamps: [1000, 2000],
+}), true);
 assert.equal(beacons.length, 2);
 assert.equal(beacons[0].url, "/api/analytics/events");
 assert.equal(beacons[0].payload.event, "page_view");
@@ -49,10 +62,22 @@ assert.ok(beacons[0].payload.visitor_id.startsWith("uuid-"));
 assert.ok(beacons[0].payload.session_id.startsWith("uuid-"));
 assert.equal("name" in beacons[1].payload, false);
 assert.equal("answers" in beacons[1].payload, false);
+assert.equal("questionIds" in beacons[1].payload, false);
+assert.equal("timestamps" in beacons[1].payload, false);
 assert.deepEqual(
-  { level: beacons[1].payload.level, mode: beacons[1].payload.mode, score: beacons[1].payload.score },
-  { level: "junior", mode: "full", score: 88 },
+  {
+    level: beacons[1].payload.level,
+    mode: beacons[1].payload.mode,
+    score: beacons[1].payload.score,
+    confidence: beacons[1].payload.confidence,
+    visibility: beacons[1].payload.visibility,
+    clipboard: beacons[1].payload.clipboard,
+    fast: beacons[1].payload.fast,
+    duration: beacons[1].payload.duration,
+  },
+  { level: "junior", mode: "full", score: 88, confidence: "low", visibility: 2, clipboard: 3, fast: 1, duration: 2 },
 );
+assert.equal("confidence" in beacons[0].payload, false, "confidence fields are allowed only on assessment completion");
 assert.equal(local.size, 1);
 assert.equal(session.size, 1);
 

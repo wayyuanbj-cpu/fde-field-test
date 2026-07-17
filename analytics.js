@@ -4,6 +4,7 @@ const EVENTS = new Set([
 ]);
 const LEVELS = new Set(["junior", "intermediate", "advanced"]);
 const MODES = new Set(["full", "mock"]);
+const CONFIDENCE = new Set(["trusted", "review", "low"]);
 const SOURCE_ALIASES = Object.freeze({
   chatgpt: "chatgpt", chatgptcom: "chatgpt", openai: "chatgpt",
   perplexity: "perplexity", perplexityai: "perplexity",
@@ -84,11 +85,17 @@ function deviceOf(environment) {
   return userAgent ? "desktop" : "other";
 }
 
-function allowedProperties(properties) {
+function allowedProperties(event, properties) {
   const safe = {};
   if (LEVELS.has(properties?.level)) safe.level = properties.level;
   if (MODES.has(properties?.mode)) safe.mode = properties.mode;
   if (Number.isInteger(properties?.score) && properties.score >= 0 && properties.score <= 100) safe.score = properties.score;
+  if (event === "level_complete") {
+    if (CONFIDENCE.has(properties?.confidence)) safe.confidence = properties.confidence;
+    for (const key of ["visibility", "clipboard", "fast", "duration"]) {
+      if (Number.isInteger(properties?.[key]) && properties[key] >= 0 && properties[key] <= 3) safe[key] = properties[key];
+    }
+  }
   return safe;
 }
 
@@ -102,7 +109,7 @@ export function createAnalyticsClient(environment = globalThis) {
       source: sourceOf(environment),
       device: deviceOf(environment),
       locale: localeOf(environment),
-      ...allowedProperties(properties),
+      ...allowedProperties(event, properties),
     };
     const json = JSON.stringify(payload);
     try {

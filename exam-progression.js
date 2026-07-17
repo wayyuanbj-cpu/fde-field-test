@@ -5,7 +5,7 @@ import {
   levelOrder,
 } from "./assessment-levels.js";
 
-export const PROGRESSION_VERSION = 1;
+export const PROGRESSION_VERSION = 3;
 export const PROGRESSION_KEY = `onex-fde-progression:${PROGRESSION_VERSION}`;
 
 export function createEmptyProgression() {
@@ -23,6 +23,12 @@ export function evaluateQualification(mode, result) {
   if ((result?.unanswered ?? 0) > 0) return { qualifies: false, reason: "incomplete", lowestModuleScore: lowest };
   if ((result?.score ?? 0) < ADVANCE_SCORE) return { qualifies: false, reason: "score", lowestModuleScore: lowest };
   if (lowest < MODULE_FLOOR) return { qualifies: false, reason: "module", lowestModuleScore: lowest };
+  if ((result?.criticalMisses ?? 0) > 0) {
+    return { qualifies: false, reason: "critical", lowestModuleScore: lowest, criticalMisses: result.criticalMisses };
+  }
+  if (result?.integrity?.eligible === false) {
+    return { qualifies: false, reason: "integrity", lowestModuleScore: lowest, integrityBand: result.integrity.band ?? "low" };
+  }
   return { qualifies: true, reason: "qualified", lowestModuleScore: lowest };
 }
 
@@ -49,8 +55,11 @@ export function updateProgression(current, level, mode, result, now = new Date()
   const evaluation = evaluateQualification(mode, result);
   const candidate = {
     score: Number(result.score) || 0,
+    diagnosticScore: Number.isFinite(result.diagnosticScore) ? result.diagnosticScore : Number(result.score) || 0,
     lowestModuleScore: evaluation.lowestModuleScore,
     moduleScores: { ...(result.moduleScores ?? {}) },
+    criticalMisses: Number(result.criticalMisses) || 0,
+    integrityBand: ["trusted", "review", "low"].includes(result.integrity?.band) ? result.integrity.band : "review",
     qualifies: evaluation.qualifies,
     completedAt: now,
   };
@@ -74,7 +83,9 @@ export function nextLevel(level) {
 
 function validRecord(level, record) {
   if (!levelDefinitions[level] || !record || typeof record !== "object") return false;
-  if (!Number.isFinite(record.score) || !Number.isFinite(record.lowestModuleScore)) return false;
+  if (!Number.isFinite(record.score) || !Number.isFinite(record.diagnosticScore) || !Number.isFinite(record.lowestModuleScore)) return false;
+  if (!Number.isFinite(record.criticalMisses) || record.criticalMisses < 0) return false;
+  if (!["trusted", "review", "low"].includes(record.integrityBand)) return false;
   if (typeof record.qualifies !== "boolean" || !record.moduleScores || typeof record.moduleScores !== "object") return false;
   return Object.values(record.moduleScores).every(Number.isFinite);
 }

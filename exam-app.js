@@ -10,6 +10,14 @@ import {
   updateProgression,
 } from "./exam-progression.js";
 import { clearExamState, examStateKey, loadExamState, saveExamState } from "./exam-state.js";
+import {
+  createIntegritySession,
+  finalizeIntegrity,
+  recordAnswerEvent,
+  recordIntegrityEvent,
+  recordQuestionView,
+} from "./exam-integrity.js";
+import { prepareAttempt, restoreAttempt } from "./exam-randomization.js";
 import { drawExamShareCard } from "./exam-share-card.js";
 import { sanitizeShareName, shareFilename } from "./share-name.js";
 import { track } from "./analytics.js";
@@ -24,6 +32,8 @@ const state = {
   level: null,
   mode: null,
   questions: [],
+  optionOrders: {},
+  integrity: null,
   answers: {},
   currentIndex: 0,
   result: null,
@@ -69,6 +79,8 @@ function persist() {
     level: state.level,
     mode: state.mode,
     questionIds: state.questions.map((question) => question.id),
+    optionOrders: state.optionOrders,
+    integrity: state.integrity,
     answers: state.answers,
     currentIndex: state.currentIndex,
   });
@@ -196,14 +208,23 @@ function startExam(mode, restoredState = null) {
   state.result = null;
   state.qualification = null;
   if (restoredState) {
-    const bankById = new Map(getQuestionBank(state.level).map((question) => [question.id, question]));
-    state.questions = restoredState.questionIds.map((id) => bankById.get(id)).filter(Boolean);
+    state.optionOrders = restoredState.optionOrders;
+    state.integrity = restoredState.integrity;
+    state.questions = restoreAttempt(getQuestionBank(state.level), restoredState.questionIds, state.optionOrders);
     state.answers = restoredState.answers ?? {};
     state.currentIndex = restoredState.currentIndex ?? 0;
   } else {
     const target = storage();
     if (target) clearExamState(target, examStateKey(state.level, mode));
-    state.questions = buildExam(state.level, mode);
+    const prepared = prepareAttempt(buildExam(state.level, mode));
+    state.questions = prepared.questions;
+    state.optionOrders = prepared.optionOrders;
+    const definition = levelDefinitions[state.level];
+    state.integrity = createIntegritySession({
+      startedAt: Date.now(),
+      suggestedMinutes: mode === "full" ? definition.fullMinutes : definition.mockMinutes,
+      questionCount: state.questions.length,
+    });
     state.answers = {};
     state.currentIndex = 0;
     track("level_start", { level: state.level, mode });
@@ -249,6 +270,7 @@ function renderQuestion() {
   const definition = levelDefinitions[state.level];
   const module = moduleDefinition(state.level, question.module);
   const selected = state.answers[question.id] ?? [];
+  state.integrity = recordQuestionView(state.integrity, question.id, Date.now());
   $("#exam-question-number").textContent = `QUESTION ${String(state.currentIndex + 1).padStart(3, "0")}`;
   const type = $("#exam-question-type");
   const guidance = $("#exam-question-guidance");
@@ -278,6 +300,7 @@ function renderQuestion() {
       } else {
         state.answers[question.id] = [index];
       }
+      state.integrity = recordAnswerEvent(state.integrity, question.id, Date.now());
       renderNavigator();
       persist();
     });
@@ -328,8 +351,14 @@ function renderResult() {
   const result = state.result;
   $("#exam-result-code").innerHTML = `<span>${definition.code}</span><span>ASSESSMENT COMPLETE</span>`;
   $("#exam-result-status").textContent = `${definition.resultNoun}${result.classification.label}`;
-  $("#exam-result-score").textContent = String(result.score).padStart(2, "0");
+  $("#exam-result-score").textContent = String(result.diagnosticScore).padStart(2, "0");
+  $("#exam-ability-label").textContent = ui.abilityScoreLabel;
   $("#exam-result-mode").textContent = ui.resultMode(state.mode, state.questions.length);
+  $("#exam-strict-title").textContent = ui.strictScoreLabel;
+  $("#exam-strict-score").textContent = String(result.score).padStart(2, "0");
+  $("#exam-confidence-title").textContent = ui.confidenceLabel;
+  $("#exam-confidence-label").textContent = ui.confidenceLabels[result.integrity.band];
+  $("#exam-confidence-reason").textContent = ui.confidenceReason(result.integrity.band);
   const qualification = state.qualification ?? evaluateQualification(state.mode, result);
   const followingLevel = qualification.qualifies ? nextLevel(state.level) : null;
   const status = $("#qualification-status");
@@ -349,6 +378,12 @@ function renderResult() {
   } else if (qualification.qualifies) {
     status.textContent = ui.qualifiedStatus(state.level);
     reason.textContent = ui.qualifiedReason(followingLevel ? levelDefinitions[followingLevel].shortLabel : null);
+  } else if (qualification.reason === "critical") {
+    status.textContent = ui.criticalStatus;
+    reason.textContent = ui.criticalReason(qualification.criticalMisses);
+  } else if (qualification.reason === "integrity") {
+    status.textContent = ui.integrityStatus;
+    reason.textContent = ui.integrityReason;
   } else if (result.score >= 70) {
     status.textContent = ui.passedStatus;
     reason.textContent = qualification.reason === "module"
@@ -363,11 +398,11 @@ function renderResult() {
   $("#stat-wrong").textContent = result.incorrect;
   $("#stat-blank").textContent = result.unanswered;
 
-  const moduleValues = definition.modules.map((module) => ({ module, score: result.moduleScores[module.id] ?? 0 }));
+  const moduleValues = definition.modules.map((module) => ({ module, score: result.diagnosticModuleScores[module.id] ?? 0 }));
   const strongest = [...moduleValues].sort((a, b) => b.score - a.score)[0];
   const weakest = [...moduleValues].sort((a, b) => a.score - b.score)[0];
   $("#result-strong-module").textContent = ui.moduleScore(strongest.module.label, strongest.score);
-  $("#result-weak-module").textContent = trainingCopy(definition, weakest.module, result.score);
+  $("#result-weak-module").textContent = trainingCopy(definition, weakest.module, result.diagnosticScore);
   $("#module-results").replaceChildren(...moduleValues.map(({ module, score }) => {
     const row = document.createElement("div");
     row.className = "module-result-row";
@@ -434,7 +469,8 @@ function renderReview(moduleId, resetLimit = true) {
 
 function confirmSubmit() {
   $("#submit-panel").hidden = true;
-  state.result = scoreExam(state.questions, state.answers);
+  const integrity = finalizeIntegrity(state.integrity, Date.now());
+  state.result = { ...scoreExam(state.questions, state.answers), integrity };
   state.qualification = evaluateQualification(state.mode, state.result);
   const followingLevel = nextLevel(state.level);
   const wasFollowingAccessible = followingLevel ? canAccessLevel(state.progression, followingLevel) : false;
@@ -443,7 +479,17 @@ function confirmSubmit() {
     state.progression = updated;
     saveProgression(storage(), state.progression);
   }
-  track("level_complete", { level: state.level, mode: state.mode, score: state.result.score });
+  const durationRatio = integrity.durationMs / Math.max(1, state.integrity.suggestedMinutes * 60_000);
+  track("level_complete", {
+    level: state.level,
+    mode: state.mode,
+    score: state.result.score,
+    confidence: integrity.band,
+    visibility: integrity.visibilityExits >= 9 ? 2 : integrity.visibilityExits >= 4 ? 1 : 0,
+    clipboard: integrity.clipboardAttempts >= 5 ? 2 : integrity.clipboardAttempts >= 2 ? 1 : 0,
+    fast: integrity.fastAnswerShare > 0.5 ? 2 : integrity.fastAnswerShare > 0.25 ? 1 : 0,
+    duration: durationRatio < 0.18 ? 2 : durationRatio < 0.3 ? 1 : 0,
+  });
   if (followingLevel && !wasFollowingAccessible && canAccessLevel(state.progression, followingLevel)) {
     track("level_unlock", { level: followingLevel });
   }
@@ -594,6 +640,25 @@ document.addEventListener("click", (event) => {
 document.addEventListener("change", (event) => {
   if (event.target.matches("#review-filter")) renderReview(event.target.value);
 });
+
+document.addEventListener("visibilitychange", () => {
+  if ($("#exam-view").hidden || !state.integrity) return;
+  state.integrity = recordIntegrityEvent(
+    state.integrity,
+    document.visibilityState === "hidden" ? "hidden" : "visible",
+    Date.now(),
+  );
+  if (document.visibilityState === "visible") persist();
+});
+
+for (const type of ["copy", "cut", "paste", "contextmenu"]) {
+  document.addEventListener(type, (event) => {
+    if ($("#exam-view").hidden || !state.integrity || !event.target.closest?.("#exam-view")) return;
+    event.preventDefault();
+    state.integrity = recordIntegrityEvent(state.integrity, type, Date.now());
+    persist();
+  });
+}
 
 const loadedProgression = loadProgression(storage());
 state.progression = loadedProgression.state;

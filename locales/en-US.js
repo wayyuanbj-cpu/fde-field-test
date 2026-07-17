@@ -41,7 +41,7 @@ const englishLevelDefinitions = Object.freeze({
     id: "junior", code: "L1 / FOUNDATION", shortLabel: "Foundation", title: "Foundation · Core Knowledge", resultNoun: "Foundation",
     audience: "AI users and people beginning their FDE path",
     description: "Tests the core concepts, methods, and risk boundaries required to enter an enterprise AI delivery environment.",
-    fullCount: 100, mockCount: 50, fullTime: "100–140 minutes", mockTime: "45–70 minutes", accent: "#39d98a",
+    fullCount: 100, mockCount: 50, fullMinutes: 100, mockMinutes: 45, fullTime: "100–140 minutes", mockTime: "45–70 minutes", accent: "#39d98a",
     modules: Object.freeze([
       { id: "ai-foundation", code: "AI", label: "AI and LLM Foundations", short: "AI Foundations", mockCount: 10 },
       { id: "prompt-decomposition", code: "PMT", label: "Prompting and Task Decomposition", short: "Task Design", mockCount: 10 },
@@ -54,7 +54,7 @@ const englishLevelDefinitions = Object.freeze({
     id: "intermediate", code: "L2 / DELIVERY", shortLabel: "Delivery", title: "Delivery · Applied Scenarios", resultNoun: "Delivery",
     audience: "Practitioners with experience in enterprise AI solutions, pilots, workflows, or client delivery",
     description: "Tests diagnosis, tradeoffs, solution design, execution, and customer success under realistic project pressure.",
-    fullCount: 60, mockCount: 30, fullTime: "75–100 minutes", mockTime: "35–50 minutes", accent: "#5d8cff",
+    fullCount: 60, mockCount: 30, fullMinutes: 75, mockMinutes: 35, fullTime: "75–100 minutes", mockTime: "35–50 minutes", accent: "#5d8cff",
     modules: Object.freeze([
       { id: "business-diagnosis", code: "DIA", label: "Business Diagnosis", short: "Diagnosis", mockCount: 5 },
       { id: "scenario-priority", code: "PRI", label: "Use-Case Prioritization", short: "Prioritization", mockCount: 5 },
@@ -68,7 +68,7 @@ const englishLevelDefinitions = Object.freeze({
     id: "advanced", code: "L3 / COMMAND", shortLabel: "Command", title: "Command · Complex Decisions", resultNoun: "Command",
     audience: "Leaders responsible for complex enterprise AI programs, cross-functional governance, and delivery at scale",
     description: "Tests whether you can make accountable decisions under organizational conflict, system constraints, commercial pressure, and high-impact risk.",
-    fullCount: 40, mockCount: 20, fullTime: "60–90 minutes", mockTime: "30–45 minutes", accent: "#ad7bff",
+    fullCount: 40, mockCount: 20, fullMinutes: 60, mockMinutes: 30, fullTime: "60–90 minutes", mockTime: "30–45 minutes", accent: "#ad7bff",
     modules: Object.freeze([
       { id: "complex-diagnosis", code: "CDX", label: "Complex-System Diagnosis", short: "System Diagnosis", mockCount: 4 },
       { id: "enterprise-architecture", code: "ENT", label: "Enterprise Architecture Tradeoffs", short: "Enterprise Design", mockCount: 4 },

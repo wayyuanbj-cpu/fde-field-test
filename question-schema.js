@@ -14,6 +14,7 @@ export function validateQuestionBank(questions, contract) {
     if (!contract.modules.includes(question.module)) throw new Error(`模块错误：${question.id}`);
     moduleCounts[question.module] += 1;
     if (!TYPES.has(question.type)) throw new Error(`题型错误：${question.id}`);
+    if (typeof question.critical !== "boolean") throw new Error(`关键题标记错误：${question.id}`);
     if (!Array.isArray(question.options) || question.options.length < 2) throw new Error(`选项不足：${question.id}`);
     if (!Array.isArray(question.answer) || question.answer.length === 0) throw new Error(`答案缺失：${question.id}`);
     if (question.answer.some((index) => !Number.isInteger(index) || index < 0 || index >= question.options.length)) {
@@ -36,12 +37,13 @@ export function validateQuestionBank(questions, contract) {
   return true;
 }
 
-export function createQuestion({ id, level, module, type = "single", context = "", prompt, options, answer, explanation }) {
+export function createQuestion({ id, level, module, type = "single", context = "", prompt, options, answer, explanation, critical = false }) {
   return Object.freeze({
     id,
     level,
     module,
     type,
+    critical,
     context,
     prompt,
     options: Object.freeze([...options]),

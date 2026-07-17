@@ -19,7 +19,7 @@ for (const [level, count] of Object.entries(expected)) {
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 assert.match(html, /NO LEVEL SKIPPING/);
-assert.match(html, /总分.*85.*每个模块.*70/s);
+assert.match(html, /严格分.*85.*每模块.*70.*关键题零错.*答题可信/s);
 assert.match(html, /少选、多选、错选均不得分/);
 assert.match(html, /不代表正式毕业、认证或真实项目能力结论/);
 assert.match(html, /不上传、不写入浏览器、不进入统计后台/);
