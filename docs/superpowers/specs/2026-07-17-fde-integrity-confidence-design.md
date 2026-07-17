@@ -1,7 +1,7 @@
 # FDE Assessment Integrity and Confidence Design
 
-**Status:** Approved  
-**Date:** 2026-07-17  
+**Status:** Approved
+**Date:** 2026-07-17
 **Scope:** Chinese and English public FDE assessments
 
 ## Purpose
