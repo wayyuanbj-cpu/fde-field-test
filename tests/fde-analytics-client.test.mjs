@@ -52,7 +52,17 @@ assert.equal(client.track("level_complete", {
   questionIds: ["J001"],
   timestamps: [1000, 2000],
 }), true);
-assert.equal(beacons.length, 2);
+assert.equal(client.track("training_page_view", {
+  source: "public_test",
+  mobile: "13800138000",
+}), true);
+assert.equal(client.track("training_apply_submit", {
+  source: "public_test",
+  result: "submitted",
+  name: "张三",
+  public_id: "FDE-A-SECRET0001",
+}), true);
+assert.equal(beacons.length, 4);
 assert.equal(beacons[0].url, "/api/analytics/events");
 assert.equal(beacons[0].payload.event, "page_view");
 assert.equal(beacons[0].payload.source, "direct");
@@ -64,6 +74,13 @@ assert.equal("name" in beacons[1].payload, false);
 assert.equal("answers" in beacons[1].payload, false);
 assert.equal("questionIds" in beacons[1].payload, false);
 assert.equal("timestamps" in beacons[1].payload, false);
+assert.equal(beacons[2].payload.event, "training_page_view");
+assert.equal(beacons[2].payload.source, "public_test");
+assert.equal("mobile" in beacons[2].payload, false);
+assert.equal(beacons[3].payload.event, "training_apply_submit");
+assert.equal(beacons[3].payload.result, "submitted");
+assert.equal("name" in beacons[3].payload, false);
+assert.equal("public_id" in beacons[3].payload, false);
 assert.deepEqual(
   {
     level: beacons[1].payload.level,

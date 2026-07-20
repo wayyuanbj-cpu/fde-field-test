@@ -224,6 +224,8 @@
 .exam-result-actions button { color: #0a182a; border-color: rgba(10,24,42,.2); }
 .exam-result-actions button:first-child { background: #2962ff; color: white; border-color: #2962ff; }
 .exam-result-actions button[hidden] { display: none; }
+.exam-training-link { min-height: 48px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #2962ff; color: #254fc3; text-decoration: none; font-size: 12px; font-weight: 700; }
+.exam-training-link:hover { background: #2962ff; color: #f4f7fb; }
 .final-share-identity { margin-top: 24px; padding: 24px; border: 1px solid rgba(41,98,255,.22); border-left: 5px solid #ff5a1f; background: linear-gradient(120deg, rgba(255,255,255,.9), rgba(229,237,255,.78)); display: grid; grid-template-columns: minmax(260px,1fr) minmax(280px,.8fr); gap: 18px 34px; align-items: end; }
 .final-share-identity[hidden] { display: none; }
 .final-share-identity > div > span { color: #3155be; font: 9px/1 var(--mono); letter-spacing: .1em; }

@@ -67,6 +67,31 @@ class AnalyticsDatabaseTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             validate_event({**BASE_EVENT, "event": "level_complete"})
 
+    def test_training_events_keep_only_coarse_source_and_result(self):
+        event = validate_event({
+            **BASE_EVENT,
+            "event": "training_apply_submit",
+            "source": "public_test",
+            "result": "submitted",
+        })
+        self.assertEqual(event["source"], "public_test")
+        self.assertEqual(event["result"], "submitted")
+        with self.assertRaises(ValidationError):
+            validate_event({
+                **BASE_EVENT,
+                "event": "training_apply_submit",
+                "source": "public_test",
+                "result": "submitted",
+                "mobile": "13800138000",
+            })
+        with self.assertRaises(ValidationError):
+            validate_event({
+                **BASE_EVENT,
+                "event": "training_apply_error",
+                "source": "public_test",
+                "result": "validation_with_name",
+            })
+
     def test_dashboard_aggregates_anonymous_metrics(self):
         record_event(self.conn, BASE_EVENT, self.now)
         record_event(self.conn, {**BASE_EVENT, "session_id": "session-two", "source": "wechat"}, self.now)

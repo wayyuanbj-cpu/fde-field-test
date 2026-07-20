@@ -95,7 +95,8 @@ main { min-height: calc(100vh - 140px); }
 .fde-reference-preview { margin-top: 74px; padding: 34px 0; display: grid; grid-template-columns: .55fr 1.55fr auto; align-items: center; gap: clamp(24px,5vw,72px); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .fde-reference-preview h2 { margin: 0; font-size: clamp(28px,3vw,46px); line-height: 1.08; letter-spacing: -.04em; }
 .fde-reference-preview p:not(.section-code) { max-width: 720px; margin: 14px 0 0; color: var(--steel); font-size: 14px; line-height: 1.75; }
-.fde-reference-preview a { min-height: 48px; padding: 0 18px; display: inline-flex; align-items: center; border: 1px solid rgba(115,148,255,.48); color: var(--cobalt-soft); text-decoration: none; font-size: 12px; white-space: nowrap; }
+.fde-reference-actions { display: grid; gap: 10px; }
+.fde-reference-actions a { min-height: 48px; padding: 0 18px; display: inline-flex; align-items: center; border: 1px solid rgba(115,148,255,.48); color: var(--cobalt-soft); text-decoration: none; font-size: 12px; white-space: nowrap; }
 
 .quiz-view { min-height: calc(100vh - 78px); padding: 40px clamp(20px, 5vw, 84px) 80px; }
 .quiz-topbar { display: flex; justify-content: space-between; align-items: center; }
@@ -159,6 +160,8 @@ main { min-height: calc(100vh - 140px); }
 .exposure-card p { color: #aebdce; }
 .exposure-card > span { color: #ff8a60; }
 .result-actions { margin-top: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.training-result-link { min-height: 48px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #3155be; color: #3155be; text-decoration: none; font-size: 13px; font-weight: 700; }
+.training-result-link:hover { background: #3155be; color: #f4f7fb; }
 .secondary-button.light { border-color: rgba(10,24,42,.2); color: #3b526c; }
 .text-button.light { color: #536b85; }
 .share-panel { margin-top: 34px; padding-top: 34px; border-top: 1px solid rgba(10,24,42,.16); display: grid; grid-template-columns: minmax(280px,.7fr) minmax(300px,1fr); gap: 44px; align-items: center; }

@@ -1,10 +1,18 @@
 const EVENTS = new Set([
   "page_view", "quick_start", "quick_complete", "level_start", "level_complete",
-  "level_unlock", "final_complete", "share_generate",
+  "level_unlock", "final_complete", "share_generate", "training_page_view",
+  "training_apply_start", "training_apply_submit", "training_apply_error",
 ]);
 const LEVELS = new Set(["junior", "intermediate", "advanced"]);
 const MODES = new Set(["full", "mock"]);
 const CONFIDENCE = new Set(["trusted", "review", "low"]);
+const TRAINING_EVENTS = new Set([
+  "training_page_view", "training_apply_start", "training_apply_submit", "training_apply_error",
+]);
+const TRAINING_SOURCES = new Set([
+  "public_test", "wechat_article", "community", "talent_page", "referral", "direct", "other",
+]);
+const TRAINING_RESULTS = new Set(["submitted", "waitlisted", "existing", "error", "network"]);
 const SOURCE_ALIASES = Object.freeze({
   chatgpt: "chatgpt", chatgptcom: "chatgpt", openai: "chatgpt",
   perplexity: "perplexity", perplexityai: "perplexity",
@@ -95,6 +103,12 @@ function allowedProperties(event, properties) {
     for (const key of ["visibility", "clipboard", "fast", "duration"]) {
       if (Number.isInteger(properties?.[key]) && properties[key] >= 0 && properties[key] <= 3) safe[key] = properties[key];
     }
+  }
+  if (TRAINING_EVENTS.has(event) && TRAINING_SOURCES.has(properties?.source)) {
+    safe.source = properties.source;
+  }
+  if (["training_apply_submit", "training_apply_error"].includes(event) && TRAINING_RESULTS.has(properties?.result)) {
+    safe.result = properties.result;
   }
   return safe;
 }

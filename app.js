@@ -164,6 +164,7 @@ function drawRadar(canvas, dimensions) {
 function renderResult() {
   const { result } = state;
   showView("result-view");
+  document.querySelector("#quick-training-link").href = "./fde-training/?source=public_test";
   document.querySelector("#result-level").textContent = `${copy.profilePrefix} · ${result.level.label}`;
   document.querySelector("#result-verdict").textContent = result.level.verdict;
   document.querySelector("#result-score").textContent = pad(result.index);

@@ -11,14 +11,22 @@ EVENTS = {
     "level_unlock",
     "final_complete",
     "share_generate",
+    "training_page_view",
+    "training_apply_start",
+    "training_apply_submit",
+    "training_apply_error",
 }
 LEVELS = {"junior", "intermediate", "advanced"}
 MODES = {"full", "mock"}
 DEVICES = {"desktop", "mobile", "tablet", "other"}
 LOCALES = {"zh-CN", "en"}
-SOURCES = {"chatgpt", "perplexity", "copilot", "claude", "gemini", "wechat", "x", "search", "direct", "other"}
+SOURCES = {
+    "chatgpt", "perplexity", "copilot", "claude", "gemini", "wechat", "x", "search",
+    "public_test", "wechat_article", "community", "talent_page", "referral", "direct", "other",
+}
 AI_SOURCES = {"chatgpt", "perplexity", "copilot", "claude", "gemini"}
-ALLOWED_KEYS = {"event", "visitor_id", "session_id", "source", "device", "locale", "level", "mode", "score"}
+TRAINING_RESULTS = {"submitted", "waitlisted", "existing", "error", "network"}
+ALLOWED_KEYS = {"event", "visitor_id", "session_id", "source", "device", "locale", "level", "mode", "score", "result"}
 REQUIRED_BY_EVENT = {
     "page_view": set(),
     "quick_start": set(),
@@ -28,6 +36,10 @@ REQUIRED_BY_EVENT = {
     "level_unlock": {"level"},
     "final_complete": {"level", "mode", "score"},
     "share_generate": set(),
+    "training_page_view": set(),
+    "training_apply_start": set(),
+    "training_apply_submit": {"result"},
+    "training_apply_error": {"result"},
 }
 
 
@@ -59,6 +71,7 @@ def initialize(conn):
             level TEXT,
             mode TEXT,
             score INTEGER
+            ,result TEXT
         );
         CREATE INDEX IF NOT EXISTS idx_events_time ON events(occurred_at);
         CREATE INDEX IF NOT EXISTS idx_events_event ON events(event);
@@ -136,6 +149,8 @@ def initialize(conn):
     event_columns = {row["name"] for row in conn.execute("PRAGMA table_info(events)")}
     if "locale" not in event_columns:
         conn.execute("ALTER TABLE events ADD COLUMN locale TEXT NOT NULL DEFAULT 'zh-CN'")
+    if "result" not in event_columns:
+        conn.execute("ALTER TABLE events ADD COLUMN result TEXT")
     conn.commit()
 
 
@@ -186,6 +201,12 @@ def validate_event(payload):
         if isinstance(score, bool) or not isinstance(score, int) or not 0 <= score <= 100:
             raise ValidationError("invalid score")
         normalized["score"] = score
+    if "result" in payload:
+        if event not in {"training_apply_submit", "training_apply_error"}:
+            raise ValidationError("result is not allowed for this event")
+        if payload["result"] not in TRAINING_RESULTS:
+            raise ValidationError("invalid result")
+        normalized["result"] = payload["result"]
     return normalized
 
 
@@ -216,8 +237,8 @@ def record_event(conn, payload, now=None):
     mode = event.get("mode", "")
     with conn:
         conn.execute(
-            "INSERT INTO events(occurred_at,day,event,visitor_id,session_id,source,device,locale,level,mode,score) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
-            (occurred_at, day, event["event"], event["visitor_id"], event["session_id"], event["source"], event["device"], event["locale"], level or None, mode or None, event.get("score")),
+            "INSERT INTO events(occurred_at,day,event,visitor_id,session_id,source,device,locale,level,mode,score,result) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+            (occurred_at, day, event["event"], event["visitor_id"], event["session_id"], event["source"], event["device"], event["locale"], level or None, mode or None, event.get("score"), event.get("result")),
         )
         conn.execute(
             "INSERT INTO daily_events(day,event,level,mode,count) VALUES(?,?,?,?,1) ON CONFLICT(day,event,level,mode) DO UPDATE SET count=count+1",
@@ -229,6 +250,11 @@ def record_event(conn, payload, now=None):
             conn.execute(
                 "INSERT INTO daily_dimensions(day,dimension,label,count) VALUES(?,?,?,1) ON CONFLICT(day,dimension,label) DO UPDATE SET count=count+1",
                 (day, dimension, event[dimension]),
+            )
+        if "result" in event:
+            conn.execute(
+                "INSERT INTO daily_dimensions(day,dimension,label,count) VALUES(?,?,?,1) ON CONFLICT(day,dimension,label) DO UPDATE SET count=count+1",
+                (day, "result", event["result"]),
             )
         if "score" in event:
             conn.execute(

@@ -349,6 +349,7 @@ function trainingCopy(definition, weakModule, score) {
 function renderResult() {
   const definition = levelDefinitions[state.level];
   const result = state.result;
+  $("#exam-training-link").href = "./fde-training/?source=public_test";
   $("#exam-result-code").innerHTML = `<span>${definition.code}</span><span>ASSESSMENT COMPLETE</span>`;
   $("#exam-result-status").textContent = `${definition.resultNoun}${result.classification.label}`;
   $("#exam-result-score").textContent = String(result.diagnosticScore).padStart(2, "0");
