@@ -14,6 +14,14 @@ export async function loadNetworkConfig(fetchImpl = globalThis.fetch) {
 async function setup(documentObject, environment = globalThis) {
   const entry = documentObject.querySelector('#network-entry');
   if (!entry) return;
+  const hostname = environment.location?.hostname;
+  if (
+    ['localhost', '127.0.0.1', '::1'].includes(hostname)
+    && environment.__FDE_NETWORK_PREVIEW__ !== true
+  ) {
+    entry.hidden = true;
+    return;
+  }
   try {
     const config = await loadNetworkConfig(environment.fetch?.bind(environment));
     if (config.network_enabled) entry.hidden = false;

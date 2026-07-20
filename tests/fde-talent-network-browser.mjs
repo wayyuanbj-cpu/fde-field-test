@@ -17,6 +17,7 @@ const fixture = {
 
 async function pageWithRoutes(viewport) {
   const context = await browser.newContext({ viewport });
+  await context.addInitScript(() => { window.__FDE_NETWORK_PREVIEW__ = true; });
   const page = await context.newPage();
   const errors = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });

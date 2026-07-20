@@ -1,0 +1,31 @@
+[Unit]
+Description=OneX FDE talent network service
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/fde-field-test/backend
+Environment=PYTHONPATH=/opt/fde-field-test/backend
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=FDE_NETWORK_DB=/var/lib/fde-network/network.db
+Environment=FDE_NETWORK_HOST=127.0.0.1
+Environment=FDE_NETWORK_PORT=8766
+ExecStart=/usr/bin/python3 -m fde_network.app
+Restart=on-failure
+RestartSec=3
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/var/lib/fde-network
+
+[Install]
+WantedBy=multi-user.target

@@ -127,6 +127,39 @@ Outbox 是本地事务记录，可调用 `fde_commercial.outbox.dispatch_pending
 
 如需立即回滚招生入口，应先执行上面的 `set-offer-status --status paused` 完成可审计的暂停招生，再回滚页面或服务版本。这样不会删除已有申请、审计和 outbox 记录。
 
+## FDE 人才网络服务
+
+人才网络使用独立 SQLite 数据库和 `127.0.0.1:8766`，不与匿名统计或招生商业库混用。本地启动需要 Python 3.11+：
+
+```bash
+PYTHONPATH=backend FDE_NETWORK_DB=/tmp/fde-network.db python3 -m fde_network.app
+```
+
+首批真实资料使用已被 Git 忽略的 `data/first-batch-talents.local.json`。先验证，再显式决定是否发布：
+
+```bash
+PYTHONPATH=backend python3 -m fde_network.import_talents --db /tmp/fde-network.db \
+  --input data/first-batch-talents.local.json --actor owner:1 --dry-run
+PYTHONPATH=backend python3 -m fde_network.import_talents --db /tmp/fde-network.db \
+  --input data/first-batch-talents.local.json --actor owner:1 --publish
+```
+
+两个灰度开关默认都是关闭的。完成资料审核后才依次开启：
+
+```bash
+PYTHONPATH=backend FDE_NETWORK_DB=/tmp/fde-network.db \
+  python3 -m fde_network.manage set-flag network_enabled true --actor owner:1
+PYTHONPATH=backend FDE_NETWORK_DB=/tmp/fde-network.db \
+  python3 -m fde_network.manage set-flag talent_directory_enabled true --actor owner:1
+```
+
+回滚时只关闭总开关，不删除档案，也不修改公开测试文件：
+
+```bash
+PYTHONPATH=backend FDE_NETWORK_DB=/tmp/fde-network.db \
+  python3 -m fde_network.manage set-flag network_enabled false --actor owner:1
+```
+
 ## 服务器发布
 
 OneX ECS 从 GitHub `main` 部署：

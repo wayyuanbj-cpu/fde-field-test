@@ -11,6 +11,8 @@ ANALYTICS_SERVICE="/etc/systemd/system/fde-analytics.service"
 ANALYTICS_CREDENTIALS="/root/fde-stats-credentials.json"
 COMMERCIAL_DATA="/var/lib/fde-commercial"
 COMMERCIAL_SERVICE="/etc/systemd/system/fde-commercial.service"
+NETWORK_DATA="/var/lib/fde-network"
+NETWORK_SERVICE="/etc/systemd/system/fde-network.service"
 
 if [[ "$(id -u)" -ne 0 ]]; then
   echo "Please run this script as root." >&2
@@ -78,11 +80,20 @@ chown -R www-data:www-data "$COMMERCIAL_DATA"
 chmod 0750 "$COMMERCIAL_DATA"
 install -m 0644 "$SOURCE_DIR/deploy/fde-commercial.service" "$COMMERCIAL_SERVICE"
 
+install -d -m 0750 -o www-data -g www-data "$NETWORK_DATA"
+PYTHONPATH="$SOURCE_DIR/backend" FDE_NETWORK_DB="$NETWORK_DATA/network.db" \
+  python3 -c 'import os; from fde_network.db import connect, initialize; conn = connect(os.environ["FDE_NETWORK_DB"]); initialize(conn); conn.close()'
+chown -R www-data:www-data "$NETWORK_DATA"
+chmod 0750 "$NETWORK_DATA"
+install -m 0644 "$SOURCE_DIR/deploy/fde-network.service" "$NETWORK_SERVICE"
+
 systemctl daemon-reload
 systemctl enable --now fde-analytics.service
 systemctl restart fde-analytics.service
 systemctl enable --now fde-commercial.service
 systemctl restart fde-commercial.service
+systemctl enable --now fde-network.service
+systemctl restart fde-network.service
 
 if [[ ! -f /etc/letsencrypt/live/fde.onex.plus/fullchain.pem ]]; then
   install -m 0644 "$SOURCE_DIR/deploy/fde.onex.plus.acme.nginx.conf" "$NGINX_SITE"
@@ -121,6 +132,15 @@ for _ in {1..20}; do
 done
 curl --fail --silent --max-time 2 http://127.0.0.1:8767/api/commercial/health >/dev/null
 
+for _ in {1..20}; do
+  if curl --fail --silent --max-time 2 http://127.0.0.1:8766/api/network/health >/dev/null; then
+    break
+  fi
+  sleep 1
+done
+curl --fail --silent --max-time 2 http://127.0.0.1:8766/api/network/health >/dev/null
+
 echo "FDE site deployed from $REPO_URL main branch to https://fde.onex.plus/"
 echo "Private analytics dashboard: https://fde.onex.plus/stats/"
 echo "FDE training applications: https://fde.onex.plus/fde-training/"
+echo "FDE talent network service installed with feature flags disabled by default."
