@@ -76,14 +76,16 @@ _MIGRATION_1_STATEMENTS = (
         mobile TEXT NOT NULL,
         wechat TEXT,
         current_role TEXT NOT NULL,
-        ai_experience TEXT NOT NULL,
+        ai_experience TEXT NOT NULL CHECK (
+            ai_experience IN ('beginner', 'practitioner', 'delivery')
+        ),
         fde_experience TEXT NOT NULL,
         learning_goal TEXT NOT NULL,
         time_commitment TEXT NOT NULL,
         source TEXT NOT NULL CHECK (
             source IN (
-                'public_test', 'wechat_official', 'community', 'talent_page',
-                'enterprise_referral', 'direct', 'other'
+                'public_test', 'wechat_article', 'community', 'talent_page',
+                'referral', 'direct', 'other'
             )
         ),
         source_detail TEXT,
@@ -175,6 +177,11 @@ _MIGRATION_1_STATEMENTS = (
     )
     """,
     "CREATE INDEX idx_training_applications_product_mobile ON training_applications(product_id, mobile)",
+    """
+    CREATE UNIQUE INDEX uq_training_applications_active_mobile
+    ON training_applications(product_id, mobile)
+    WHERE status NOT IN ('rejected', 'withdrawn', 'closed')
+    """,
     "CREATE INDEX idx_training_applications_status ON training_applications(status, created_at)",
     "CREATE INDEX idx_commercial_outbox_dispatch ON commercial_outbox(status, available_at, id)",
     """
