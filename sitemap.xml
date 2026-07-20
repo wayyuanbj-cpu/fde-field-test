@@ -28,4 +28,10 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://fde.onex.plus/en/fde-guide/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://fde.onex.plus/fde-guide/" />
   </url>
+  <url>
+    <loc>https://fde.onex.plus/fde-training/</loc>
+    <lastmod>2026-07-20</lastmod>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://fde.onex.plus/fde-training/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fde.onex.plus/fde-training/" />
+  </url>
 </urlset>

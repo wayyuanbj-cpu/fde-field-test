@@ -5,31 +5,43 @@ User-agent: Googlebot
 Allow: /
 Disallow: /api/
 Disallow: /stats/
+Disallow: /ops/
+Disallow: /application-status/
 
 User-agent: bingbot
 Allow: /
 Disallow: /api/
 Disallow: /stats/
+Disallow: /ops/
+Disallow: /application-status/
 
 User-agent: OAI-SearchBot
 Allow: /
 Disallow: /api/
 Disallow: /stats/
+Disallow: /ops/
+Disallow: /application-status/
 
 User-agent: PerplexityBot
 Allow: /
 Disallow: /api/
 Disallow: /stats/
+Disallow: /ops/
+Disallow: /application-status/
 
 User-agent: Claude-SearchBot
 Allow: /
 Disallow: /api/
 Disallow: /stats/
+Disallow: /ops/
+Disallow: /application-status/
 
 User-agent: Claude-User
 Allow: /
 Disallow: /api/
 Disallow: /stats/
+Disallow: /ops/
+Disallow: /application-status/
 
 # These agents are associated with model training or model improvement rather
 # than user-directed search retrieval, so the site opts out by default.
@@ -46,5 +58,7 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /stats/
+Disallow: /ops/
+Disallow: /application-status/
 
 Sitemap: https://fde.onex.plus/sitemap.xml

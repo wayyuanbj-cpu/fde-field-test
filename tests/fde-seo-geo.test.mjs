@@ -74,6 +74,7 @@ for (const bot of ["Googlebot", "bingbot", "OAI-SearchBot", "PerplexityBot", "Cl
   assert.match(group, /^Allow:\s*\/$/im, `${bot} public allow`);
   assert.match(group, /^Disallow:\s*\/api\/$/im, `${bot} api exclusion`);
   assert.match(group, /^Disallow:\s*\/stats\/$/im, `${bot} stats exclusion`);
+  assert.match(group, /^Disallow:\s*\/ops\/$/im, `${bot} operations exclusion`);
 }
 for (const bot of ["GPTBot", "ClaudeBot", "Google-Extended"]) {
   assert.match(robotGroup(bot), /^Disallow:\s*\/$/im, `${bot} training exclusion`);
@@ -84,14 +85,16 @@ const sitemap = contentOf("sitemap.xml");
 const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
 assert.deepEqual(sitemapUrls, [
   `${origin}/`, `${origin}/en/`, `${origin}/fde-guide/`, `${origin}/en/fde-guide/`,
+  `${origin}/fde-training/`,
 ]);
 assert.equal((sitemap.match(/<lastmod>2026-07-16<\/lastmod>/g) ?? []).length, 4);
-assert.equal((sitemap.match(/hreflang="zh-CN"/g) ?? []).length, 4);
+assert.equal((sitemap.match(/<lastmod>2026-07-20<\/lastmod>/g) ?? []).length, 1);
+assert.equal((sitemap.match(/hreflang="zh-CN"/g) ?? []).length, 5);
 assert.equal((sitemap.match(/hreflang="en"/g) ?? []).length, 4);
-assert.equal((sitemap.match(/hreflang="x-default"/g) ?? []).length, 4);
+assert.equal((sitemap.match(/hreflang="x-default"/g) ?? []).length, 5);
 
 const llms = contentOf("llms.txt");
-for (const path of ["/", "/en/", "/fde-guide/", "/en/fde-guide/"]) {
+for (const path of ["/", "/en/", "/fde-guide/", "/en/fde-guide/", "/fde-training/"]) {
   assert.ok(llms.includes(`${origin}${path}`), `llms public link ${path}`);
 }
 assert.match(llms, /(?:not|does not constitute) (?:formal )?(?:graduation|certification)|不代表正式毕业/i);

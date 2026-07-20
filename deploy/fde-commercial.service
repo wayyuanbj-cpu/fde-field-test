@@ -1,0 +1,31 @@
+[Unit]
+Description=OneX FDE training commercial service
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/fde-field-test/backend
+Environment=PYTHONPATH=/opt/fde-field-test/backend
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=FDE_COMMERCIAL_DB=/var/lib/fde-commercial/commercial.db
+Environment=FDE_COMMERCIAL_HOST=127.0.0.1
+Environment=FDE_COMMERCIAL_PORT=8767
+ExecStart=/usr/bin/python3 -m fde_commercial.app
+Restart=on-failure
+RestartSec=3
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/var/lib/fde-commercial
+
+[Install]
+WantedBy=multi-user.target

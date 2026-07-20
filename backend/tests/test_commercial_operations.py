@@ -331,6 +331,31 @@ class CommercialOperationsTests(unittest.TestCase):
         audit = self.run_manage("show-audit", "--limit", "5")
         self.assertIn("training_enrollment.created", audit)
 
+    def test_offer_can_be_paused_with_an_audited_cli_command(self):
+        output = self.run_manage(
+            "set-offer-status",
+            "--status",
+            "paused",
+            "--actor",
+            "owner:1",
+        )
+        self.assertEqual(json.loads(output)["status"], "paused")
+        offer = self.conn.execute(
+            "SELECT status FROM commercial_offers WHERE code = ?",
+            ("fde-small-class-open-application",),
+        ).fetchone()
+        self.assertEqual(offer["status"], "paused")
+        event = self.conn.execute(
+            """
+            SELECT actor, before_json, after_json
+            FROM commercial_audit_events
+            WHERE action = 'commercial_offer.status_changed'
+            """
+        ).fetchone()
+        self.assertEqual(event["actor"], "owner:1")
+        self.assertEqual(json.loads(event["before_json"])["status"], "open")
+        self.assertEqual(json.loads(event["after_json"])["status"], "paused")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -8,6 +8,7 @@
 - `/en/`：完整英文镜像，包含同样的 12 / 100 / 60 / 40 题与晋级规则
 - `/fde-guide/`：中文 FDE 定义、职责、五维能力模型、角色对比与评估方法
 - `/en/fde-guide/`：独立撰写的英文 FDE 参考页
+- `/fde-training/`：OneX FDE 小班实战培训招生页，每班最多 10 人
 - `/robots.txt`、`/sitemap.xml`、`/llms.txt`：搜索与 AI 发现入口
 - `/stats/`：需账号登录的中文私有统计后台
 
@@ -89,6 +90,42 @@ PYTHONPATH=backend FDE_ANALYTICS_DB=/tmp/fde-analytics.db python3 -m fde_analyti
 ```
 
 服务默认只监听 `127.0.0.1:8765`，生产环境通过 Nginx 同源代理。
+
+## FDE 培训商业化服务
+
+培训产品固定编号为 `FDE-TRAINING-SMALL-CLASS`，采用“先申请、后审核、再确认班期”的小班模式。无需预先配置具体开班日期或在线支付，任何班期的容量都不得超过 10 人。招生申请、缴费、培训结业、人才库录入、正式认证和徽章是分离的业务状态。
+
+本地启动需要 Python 3.11+：
+
+```bash
+PYTHONPATH=backend FDE_COMMERCIAL_DB=/tmp/fde-commercial.db python3 -m fde_commercial.app
+```
+
+服务只监听 `127.0.0.1:8767`，网站通过同源 `/api/commercial/` 代理。可使用以下虚构资料做幂等申请验收：
+
+```bash
+curl -i http://127.0.0.1:8767/api/commercial/public/training-applications \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: fictional-smoke-001' \
+  --data '{"product_code":"FDE-TRAINING-SMALL-CLASS","offer_id":"fde-small-class-open-application","name":"测试申请人","mobile":"13800000000","wechat":"","current_role":"产品经理","ai_experience":"practitioner","fde_experience":"参与过企业数字化项目","learning_goal":"建立完整企业 AI 交付能力","time_commitment":"每周 10 小时","source":"direct","consent_version":"training-application-v1","_company":""}'
+```
+
+招生运营命令默认遮蔽姓名和手机号；查看完整私密信息必须显式填写审计操作人：
+
+```bash
+PYTHONPATH=backend FDE_COMMERCIAL_DB=/tmp/fde-commercial.db \
+  python -m fde_commercial.manage list-applications
+PYTHONPATH=backend FDE_COMMERCIAL_DB=/tmp/fde-commercial.db \
+  python -m fde_commercial.manage list-applications --show-private --actor auditor:1
+PYTHONPATH=backend FDE_COMMERCIAL_DB=/tmp/fde-commercial.db \
+  python -m fde_commercial.manage create-cohort --name '首期' --capacity 10 --actor owner:1
+PYTHONPATH=backend FDE_COMMERCIAL_DB=/tmp/fde-commercial.db \
+  python -m fde_commercial.manage set-offer-status --status paused --actor owner:1
+```
+
+Outbox 是本地事务记录，可调用 `fde_commercial.outbox.dispatch_pending` 与明确的 adapter 同步。默认 `LocalCommercialAdapter` 只返回本地引用；未配置外部 CRM、合同、支付或企业管理系统连接器，不应声称已完成这些集成。
+
+如需立即回滚招生入口，应先执行上面的 `set-offer-status --status paused` 完成可审计的暂停招生，再回滚页面或服务版本。这样不会删除已有申请、审计和 outbox 记录。
 
 ## 服务器发布
 

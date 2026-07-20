@@ -13,6 +13,7 @@ from .operations import (
     assign_application,
     create_cohort,
     enroll_application,
+    set_offer_status,
     transition_application,
 )
 
@@ -91,6 +92,18 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--action")
     audit.add_argument("--limit", type=_positive_limit, default=100)
 
+    offer = subparsers.add_parser("set-offer-status", help="暂停或重新开放招生")
+    offer.add_argument(
+        "--offer-code",
+        default="fde-small-class-open-application",
+    )
+    offer.add_argument(
+        "--status",
+        choices=("open", "paused", "waitlist_only", "closed"),
+        required=True,
+    )
+    _require_actor(offer)
+
     return parser
 
 
@@ -159,6 +172,14 @@ def _execute(conn, args, now: datetime):
         return _list_cohorts(conn, args)
     if args.command == "show-audit":
         return _show_audit(conn, args)
+    if args.command == "set-offer-status":
+        return set_offer_status(
+            conn,
+            args.offer_code,
+            args.status,
+            args.actor,
+            now,
+        )
     raise RuntimeError(f"unsupported command: {args.command}")
 
 

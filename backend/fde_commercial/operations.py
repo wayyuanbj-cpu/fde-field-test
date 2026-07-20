@@ -11,6 +11,7 @@ from .db import append_audit
 
 
 TERMINAL_APPLICATION_STATUSES = {"rejected", "withdrawn", "closed"}
+OFFER_STATUSES = {"open", "paused", "waitlist_only", "closed"}
 APPLICATION_TRANSITIONS = {
     "submitted": {"reviewing", "rejected", "withdrawn", "closed"},
     "reviewing": {"contacted", "rejected", "withdrawn", "closed"},
@@ -250,6 +251,49 @@ def assign_application(
             now=now,
         )
     return _application(conn, application_id)
+
+
+def set_offer_status(
+    conn: sqlite3.Connection,
+    offer_code: str,
+    status: str,
+    actor: str,
+    now: datetime,
+) -> dict:
+    code = _text(offer_code, "offer_code", 120)
+    next_status = _text(status, "status", 40)
+    audit_actor = _text(actor, "actor", 120)
+    if next_status not in OFFER_STATUSES:
+        raise ValidationError("invalid offer status")
+    stamp = _iso(now)
+    with conn:
+        current = conn.execute(
+            "SELECT * FROM commercial_offers WHERE code = ?",
+            (code,),
+        ).fetchone()
+        if current is None:
+            raise ValidationError("commercial offer not found")
+        if current["status"] == next_status:
+            return dict(current)
+        conn.execute(
+            "UPDATE commercial_offers SET status = ?, updated_at = ? WHERE id = ?",
+            (next_status, stamp, current["id"]),
+        )
+        append_audit(
+            conn,
+            actor=audit_actor,
+            action="commercial_offer.status_changed",
+            object_type="commercial_offer",
+            object_id=code,
+            before={"status": current["status"]},
+            after={"status": next_status},
+            now=now,
+        )
+    changed = conn.execute(
+        "SELECT * FROM commercial_offers WHERE id = ?",
+        (current["id"],),
+    ).fetchone()
+    return dict(changed)
 
 
 def transition_application(
