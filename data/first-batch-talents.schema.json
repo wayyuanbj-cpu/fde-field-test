@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OneX FDE first-batch public talent records",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "slug", "display_name", "real_name", "headline", "city",
+      "service_mode", "availability", "status", "summary", "not_fit",
+      "service_package", "evidence_summary", "tags", "public_authorized", "locale"
+    ],
+    "properties": {
+      "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 100 },
+      "display_name": { "type": "string", "minLength": 1, "maxLength": 180 },
+      "real_name": { "type": "string", "minLength": 1, "maxLength": 180 },
+      "headline": { "type": "string", "minLength": 1, "maxLength": 180 },
+      "city": { "type": "string", "minLength": 1, "maxLength": 180 },
+      "service_mode": { "enum": ["remote", "onsite", "hybrid"] },
+      "availability": { "enum": ["available", "limited", "unavailable"] },
+      "status": { "enum": ["member", "cert_pending", "certified", "delivery", "inactive"] },
+      "summary": { "type": "string", "minLength": 1, "maxLength": 2000 },
+      "not_fit": { "type": "string", "minLength": 1, "maxLength": 2000 },
+      "service_package": { "type": "string", "minLength": 1, "maxLength": 2000 },
+      "evidence_summary": { "type": "string", "minLength": 1, "maxLength": 2000 },
+      "tags": { "type": "array", "minItems": 1, "maxItems": 10, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 40 } },
+      "public_authorized": { "const": true },
+      "locale": { "enum": ["zh-CN", "en"] }
+    }
+  }
+}

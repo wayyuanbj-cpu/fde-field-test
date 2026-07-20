@@ -1,0 +1,19 @@
+[
+  {
+    "slug": "example-manufacturing-kb-fde",
+    "display_name": "示例·制造业知识库 FDE",
+    "real_name": "虚构示例人物",
+    "headline": "将现场知识转换为可运行的 AI 流程",
+    "city": "北京",
+    "service_mode": "hybrid",
+    "availability": "available",
+    "status": "member",
+    "summary": "虚构示例：擅长知识梳理、检索设计与一线试点。",
+    "not_fit": "不承接只要求演示、不提供业务人员的项目。",
+    "service_package": "两周问题诊断与知识库试点设计。",
+    "evidence_summary": "虚构脱敏证据：调研纪要、样例库与验收清单。",
+    "tags": ["知识库", "制造业"],
+    "public_authorized": true,
+    "locale": "zh-CN"
+  }
+]

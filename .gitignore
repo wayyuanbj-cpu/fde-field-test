@@ -3,4 +3,5 @@
 __pycache__/
 *.py[cod]
 *.db
+data/first-batch-talents.local.json
 .DS_Store
