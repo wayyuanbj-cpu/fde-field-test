@@ -34,4 +34,22 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://fde.onex.plus/fde-training/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://fde.onex.plus/fde-training/" />
   </url>
+  <url>
+    <loc>https://fde.onex.plus/become-fde/</loc>
+    <lastmod>2026-07-20</lastmod>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://fde.onex.plus/become-fde/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fde.onex.plus/become-fde/" />
+  </url>
+  <url>
+    <loc>https://fde.onex.plus/enterprise/</loc>
+    <lastmod>2026-07-20</lastmod>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://fde.onex.plus/enterprise/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fde.onex.plus/enterprise/" />
+  </url>
+  <url>
+    <loc>https://fde.onex.plus/talents/</loc>
+    <lastmod>2026-07-20</lastmod>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://fde.onex.plus/talents/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://fde.onex.plus/talents/" />
+  </url>
 </urlset>

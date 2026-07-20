@@ -7,6 +7,8 @@ Disallow: /api/
 Disallow: /stats/
 Disallow: /ops/
 Disallow: /application-status/
+Disallow: /talent/apply/
+Disallow: /account/
 
 User-agent: bingbot
 Allow: /
@@ -14,6 +16,8 @@ Disallow: /api/
 Disallow: /stats/
 Disallow: /ops/
 Disallow: /application-status/
+Disallow: /talent/apply/
+Disallow: /account/
 
 User-agent: OAI-SearchBot
 Allow: /
@@ -21,6 +25,8 @@ Disallow: /api/
 Disallow: /stats/
 Disallow: /ops/
 Disallow: /application-status/
+Disallow: /talent/apply/
+Disallow: /account/
 
 User-agent: PerplexityBot
 Allow: /
@@ -28,6 +34,8 @@ Disallow: /api/
 Disallow: /stats/
 Disallow: /ops/
 Disallow: /application-status/
+Disallow: /talent/apply/
+Disallow: /account/
 
 User-agent: Claude-SearchBot
 Allow: /
@@ -35,6 +43,8 @@ Disallow: /api/
 Disallow: /stats/
 Disallow: /ops/
 Disallow: /application-status/
+Disallow: /talent/apply/
+Disallow: /account/
 
 User-agent: Claude-User
 Allow: /
@@ -42,6 +52,8 @@ Disallow: /api/
 Disallow: /stats/
 Disallow: /ops/
 Disallow: /application-status/
+Disallow: /talent/apply/
+Disallow: /account/
 
 # These agents are associated with model training or model improvement rather
 # than user-directed search retrieval, so the site opts out by default.
@@ -60,5 +72,7 @@ Disallow: /api/
 Disallow: /stats/
 Disallow: /ops/
 Disallow: /application-status/
+Disallow: /talent/apply/
+Disallow: /account/
 
 Sitemap: https://fde.onex.plus/sitemap.xml

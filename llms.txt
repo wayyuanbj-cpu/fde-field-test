@@ -13,8 +13,12 @@ The online challenge measures knowledge and scenario judgment. It does not const
 - [FDE 是什么？](https://fde.onex.plus/fde-guide/): Chinese reference covering the role, responsibilities, five-dimension capability model, comparisons, method, and boundaries.
 - [What Is an FDE?](https://fde.onex.plus/en/fde-guide/): English reference covering the Field Deployment Engineer role, capability model, comparisons, method, and boundaries.
 - [FDE 小班实战培训](https://fde.onex.plus/fde-training/): Application-led training for no more than 10 people per cohort, with dates confirmed after review.
+- [成为 FDE](https://fde.onex.plus/become-fde/): The staged path from public challenge and training to separate talent admission and formal certification.
+- [企业寻找 FDE](https://fde.onex.plus/enterprise/): Enterprise guidance and access to the public talent directory; structured demand submission is not live yet.
+- [FDE 人才目录](https://fde.onex.plus/talents/): Authorized, reviewed, privacy-safe public profiles without precise test-score ranking.
 
 Training application, course admission, talent-network admission, and public assessment are separate states; training does not itself constitute certification or a OneX badge.
+Talent-network membership does not itself mean OneX certification. Unverified members are labeled "尚未完成 OneX 认证" and do not receive a platform certification badge.
 
 ## Publisher and update information
 
