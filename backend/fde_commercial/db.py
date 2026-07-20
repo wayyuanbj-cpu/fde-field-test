@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from datetime import datetime, timezone
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 _SCHEMA_MIGRATIONS_SQL = """
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -200,6 +200,15 @@ _MIGRATION_1_STATEMENTS = (
     """,
 )
 
+_MIGRATION_2_STATEMENTS = (
+    "ALTER TABLE training_applications ADD COLUMN status_reason TEXT",
+)
+
+_MIGRATIONS = (
+    (1, _MIGRATION_1_STATEMENTS),
+    (2, _MIGRATION_2_STATEMENTS),
+)
+
 _FORBIDDEN_PAYLOAD_KEY_PARTS = (
     "password",
     "token",
@@ -228,16 +237,17 @@ def initialize(conn: sqlite3.Connection, now: datetime | None = None) -> None:
     stamp = _iso(now)
     with conn:
         conn.execute(_SCHEMA_MIGRATIONS_SQL)
-        applied = conn.execute(
-            "SELECT 1 FROM schema_migrations WHERE version = ?",
-            (SCHEMA_VERSION,),
-        ).fetchone()
-        if applied is None:
-            for statement in _MIGRATION_1_STATEMENTS:
+        applied = {
+            row[0] for row in conn.execute("SELECT version FROM schema_migrations")
+        }
+        for version, statements in _MIGRATIONS:
+            if version in applied:
+                continue
+            for statement in statements:
                 conn.execute(statement)
             conn.execute(
                 "INSERT INTO schema_migrations(version, applied_at) VALUES(?, ?)",
-                (SCHEMA_VERSION, stamp),
+                (version, stamp),
             )
         _seed_defaults(conn, stamp)
 

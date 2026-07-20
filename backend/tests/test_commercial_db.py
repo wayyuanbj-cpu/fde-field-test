@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from datetime import datetime, timezone
 
+from fde_commercial import db as commercial_db
 from fde_commercial.db import (
     append_audit,
     connect,
@@ -48,9 +49,13 @@ class CommercialDatabaseTests(unittest.TestCase):
         self.assertNotIn("events", tables)
         self.assertNotIn("talent_profiles", tables)
         self.assertEqual(
-            1,
+            2,
             conn.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0],
         )
+        application_columns = {
+            row[1] for row in conn.execute("PRAGMA table_info(training_applications)")
+        }
+        self.assertIn("status_reason", application_columns)
         conn.close()
 
     def test_initialize_seeds_small_class_product_and_open_offer(self):
@@ -65,6 +70,34 @@ class CommercialDatabaseTests(unittest.TestCase):
         self.assertEqual(offer["status"], "open")
         self.assertIsNone(offer["starts_at"])
         self.assertIsNone(offer["ends_at"])
+        conn.close()
+
+    def test_initialize_upgrades_existing_version_one_database(self):
+        conn = connect(self.temp.name)
+        with conn:
+            conn.execute(commercial_db._SCHEMA_MIGRATIONS_SQL)
+            for statement in commercial_db._MIGRATION_1_STATEMENTS:
+                conn.execute(statement)
+            conn.execute(
+                "INSERT INTO schema_migrations(version, applied_at) VALUES(1, ?)",
+                ("2026-07-19T00:00:00Z",),
+            )
+
+        initialize(conn, self.now)
+
+        columns = {
+            row[1] for row in conn.execute("PRAGMA table_info(training_applications)")
+        }
+        self.assertIn("status_reason", columns)
+        self.assertEqual(
+            [1, 2],
+            [
+                row[0]
+                for row in conn.execute(
+                    "SELECT version FROM schema_migrations ORDER BY version"
+                )
+            ],
+        )
         conn.close()
 
     def test_reinitialize_preserves_operator_edits_to_seed_rows(self):
