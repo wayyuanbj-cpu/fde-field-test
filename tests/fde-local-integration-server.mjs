@@ -4,9 +4,11 @@ import { extname, resolve, sep } from 'node:path';
 
 const root = resolve(process.env.FDE_SITE_ROOT ?? process.cwd());
 const port = Number(process.env.FDE_INTEGRATION_PORT ?? 4175);
+const TALENT_PROFILE_PATH = /^\/talents\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/;
 const targets = [
   ['/api/commercial/', new URL(process.env.FDE_COMMERCIAL_API_URL ?? 'http://127.0.0.1:8767')],
   ['/api/analytics/', new URL(process.env.FDE_ANALYTICS_API_URL ?? 'http://127.0.0.1:8765')],
+  ['/api/network/', new URL(process.env.FDE_NETWORK_API_URL ?? 'http://127.0.0.1:8766')],
 ];
 const types = {
   '.css': 'text/css; charset=utf-8',
@@ -54,7 +56,9 @@ function staticFile(request, response) {
     response.writeHead(400).end();
     return;
   }
-  let file = resolve(root, `.${pathname}`);
+  let file = TALENT_PROFILE_PATH.test(pathname)
+    ? resolve(root, 'talents', 'profile.html')
+    : resolve(root, `.${pathname}`);
   if (file !== root && !file.startsWith(`${root}${sep}`)) {
     response.writeHead(403).end();
     return;
