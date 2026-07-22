@@ -15,15 +15,30 @@ const fixture = {
   certification_label: '尚未完成 OneX 认证', locale: 'zh-CN', published_at: '2026-07-20T09:00:00Z',
 };
 
-async function pageWithRoutes(viewport) {
+async function pageWithRoutes(viewport, scenario = {}) {
+  const config = scenario.config ?? { network_enabled: true, talent_directory_enabled: true };
+  const detailStatus = scenario.detailStatus ?? 200;
   const context = await browser.newContext({ viewport });
   await context.addInitScript(() => { window.__FDE_NETWORK_PREVIEW__ = true; });
   const page = await context.newPage();
   const errors = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.route('**/api/network/config', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ features: { network_enabled: true, talent_directory_enabled: true } }) }));
-  await page.route('**/api/network/public/talents**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [fixture], filters: {} }) }));
+  await page.route('**/api/network/config', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ features: config }),
+  }));
+  await page.route('**/api/network/public/talents/*', (route) => route.fulfill({
+    status: detailStatus,
+    contentType: 'application/json',
+    body: detailStatus === 200 ? JSON.stringify({ talent: fixture }) : JSON.stringify({ error: 'not_found' }),
+  }));
+  await page.route(/\/api\/network\/public\/talents(?:\?.*)?$/, (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ items: [fixture], filters: {} }),
+  }));
   return { context, page, errors };
 }
 
@@ -38,24 +53,50 @@ try {
   if (process.env.FDE_NETWORK_HOME_SCREENSHOT) {
     await desktop.page.screenshot({ path: process.env.FDE_NETWORK_HOME_SCREENSHOT, fullPage: true });
   }
+  await desktop.page.goto(new URL('talents/', baseUrl).href, { waitUntil: 'networkidle' });
+  await desktop.page.getByRole('heading', { name: '按交付能力，找到合适的 FDE。' }).waitFor();
+  assert.equal(await desktop.page.getByLabel('项目匹配控制台').getByText('服务包、证据与能力边界', { exact: true }).isVisible(), true);
+  await desktop.page.getByLabel('城市').fill('北京');
+  await desktop.page.getByRole('button', { name: '应用筛选' }).click();
+  await desktop.page.waitForFunction(() => location.search.includes('%E5%8C%97%E4%BA%AC'));
+  if (process.env.FDE_NETWORK_TALENTS_SCREENSHOT) {
+    await desktop.page.screenshot({ path: process.env.FDE_NETWORK_TALENTS_SCREENSHOT, fullPage: true });
+  }
+  await desktop.page.getByRole('link', { name: '查看 制造业知识库 FDE 的独立主页' }).click();
+  await desktop.page.waitForURL('**/talents/manufacturing-kb-fde/');
+  await desktop.page.getByRole('heading', { name: '制造业知识库 FDE' }).waitFor();
+  assert.equal(await desktop.page.getByText('两周问题诊断与试点设计。', { exact: true }).isVisible(), true);
+  assert.equal(await desktop.page.getByText('已完成脱敏调研纪要和验收清单。', { exact: true }).isVisible(), true);
+  assert.equal(await desktop.page.getByRole('link', { name: '带着这位 FDE 提交需求' }).getAttribute('href'), '/enterprise/?talent=manufacturing-kb-fde');
   assert.deepEqual(desktop.errors, []);
   await desktop.context.close();
 
   const mobile = await pageWithRoutes({ width: 390, height: 844 });
-  await mobile.page.goto(new URL('talents/', baseUrl).href, { waitUntil: 'networkidle' });
+  await mobile.page.goto(new URL('talents/manufacturing-kb-fde/', baseUrl).href, { waitUntil: 'networkidle' });
   await mobile.page.getByRole('heading', { name: '制造业知识库 FDE' }).waitFor();
-  assert.equal(await mobile.page.getByText('尚未完成 OneX 认证', { exact: true }).first().isVisible(), true);
-  await mobile.page.getByLabel('城市').fill('北京');
-  await mobile.page.getByRole('button', { name: '应用筛选' }).click();
-  await mobile.page.waitForFunction(() => location.search.includes('%E5%8C%97%E4%BA%AC'));
   assert.equal(await mobile.page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
-  await mobile.page.getByRole('link', { name: /ONEX FDE NETWORK/ }).focus();
-  assert.ok(await mobile.page.evaluate(() => document.activeElement?.classList.contains('network-brand')));
-  if (process.env.FDE_NETWORK_TALENTS_SCREENSHOT) {
-    await mobile.page.screenshot({ path: process.env.FDE_NETWORK_TALENTS_SCREENSHOT, fullPage: true });
+  await mobile.page.getByRole('link', { name: '返回人才目录' }).focus();
+  assert.ok(await mobile.page.evaluate(() => document.activeElement?.classList.contains('profile-back')));
+  if (process.env.FDE_NETWORK_PROFILE_SCREENSHOT) {
+    await mobile.page.screenshot({ path: process.env.FDE_NETWORK_PROFILE_SCREENSHOT, fullPage: true });
   }
   assert.deepEqual(mobile.errors, []);
   await mobile.context.close();
+
+  const missing = await pageWithRoutes({ width: 390, height: 844 }, { detailStatus: 404 });
+  await missing.page.goto(new URL('talents/missing-profile/', baseUrl).href, { waitUntil: 'networkidle' });
+  assert.equal(await missing.page.getByText('没有找到这份公开档案', { exact: true }).isVisible(), true);
+  assert.equal(missing.errors.every((error) => /404|Failed to load resource/.test(error)), true);
+  await missing.context.close();
+
+  const disabled = await pageWithRoutes(
+    { width: 390, height: 844 },
+    { config: { network_enabled: false, talent_directory_enabled: false } },
+  );
+  await disabled.page.goto(new URL('talents/manufacturing-kb-fde/', baseUrl).href, { waitUntil: 'networkidle' });
+  assert.equal(await disabled.page.getByText('人才网络正在灰度准备中', { exact: true }).isVisible(), true);
+  assert.deepEqual(disabled.errors, []);
+  await disabled.context.close();
   console.log('FDE talent network browser checks passed');
 } finally {
   await browser.close();
