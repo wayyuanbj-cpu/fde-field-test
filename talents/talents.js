@@ -1,7 +1,7 @@
+import { presentTalent, profilePath } from './talent-model.js';
+
 const STATUSES = new Set(['member', 'cert_pending', 'certified', 'delivery']);
 const AVAILABILITY = new Set(['available', 'limited', 'unavailable']);
-const SERVICE_COPY = { remote: '远程', onsite: '驻场', hybrid: '混合' };
-const AVAILABILITY_COPY = { available: '可对接', limited: '排期有限', unavailable: '暂不可用' };
 
 function cleanText(value, maximum = 80) {
   return String(value ?? '').trim().slice(0, maximum);
@@ -18,25 +18,45 @@ export function normalizeFilters(searchParams) {
   };
 }
 
+export function buildTalentCardModel(talent) {
+  const view = presentTalent(talent);
+  return {
+    ...view,
+    displayName: cleanText(talent.display_name, 180),
+    headline: cleanText(talent.headline, 180),
+    city: cleanText(talent.city),
+    summary: cleanText(talent.summary, 2000),
+    servicePackage: cleanText(talent.service_package, 2000),
+    evidence: cleanText(talent.evidence_summary, 2000),
+    notFit: cleanText(talent.not_fit, 2000),
+    tags: Array.isArray(talent.tags) ? talent.tags.slice(0, 6).map((tag) => cleanText(tag, 40)) : [],
+    profilePath: profilePath(view.slug),
+  };
+}
+
 export function renderTalentCard(talent, documentObject = document) {
+  const cardModel = buildTalentCardModel(talent);
   const card = documentObject.createElement('article');
   card.className = 'talent-card';
   const top = documentObject.createElement('div');
   top.className = 'talent-card-top';
   const code = documentObject.createElement('span');
   code.className = 'talent-card-code';
-  code.textContent = `FDE NETWORK / ${cleanText(talent.slug, 100).toUpperCase()}`;
+  code.textContent = `FDE NETWORK / ${cardModel.slug.toUpperCase()}`;
+  const status = documentObject.createElement('span');
+  status.className = `talent-status talent-status-${cleanText(talent.status)}`;
+  status.textContent = cardModel.statusLabel;
   const certification = documentObject.createElement('strong');
-  certification.className = 'talent-certification';
-  certification.textContent = cleanText(talent.certification_label, 80) || '尚未完成 OneX 认证';
-  top.append(code, certification);
+  certification.className = `talent-certification${cardModel.isCertified ? ' is-certified' : ''}`;
+  certification.textContent = cardModel.certificationLabel;
+  top.append(code, status, certification);
   const title = documentObject.createElement('h2');
-  title.textContent = cleanText(talent.display_name, 180);
+  title.textContent = cardModel.displayName;
   const headline = documentObject.createElement('h3');
-  headline.textContent = cleanText(talent.headline, 180);
+  headline.textContent = cardModel.headline;
   const meta = documentObject.createElement('div');
   meta.className = 'talent-meta';
-  for (const value of [talent.city, SERVICE_COPY[talent.service_mode], AVAILABILITY_COPY[talent.availability]]) {
+  for (const value of [cardModel.city, cardModel.serviceModeLabel, cardModel.availabilityLabel]) {
     if (!value) continue;
     const item = documentObject.createElement('span');
     item.textContent = cleanText(value);
@@ -44,27 +64,34 @@ export function renderTalentCard(talent, documentObject = document) {
   }
   const tags = documentObject.createElement('div');
   tags.className = 'talent-tags';
-  for (const value of Array.isArray(talent.tags) ? talent.tags.slice(0, 10) : []) {
+  for (const value of cardModel.tags) {
     const item = documentObject.createElement('span');
-    item.textContent = cleanText(value, 40);
+    item.textContent = value;
     tags.append(item);
   }
   const details = documentObject.createElement('dl');
   for (const [label, value] of [
-    ['能力概要', talent.summary],
-    ['服务包', talent.service_package],
-    ['脱敏证据', talent.evidence_summary],
-    ['不适合', talent.not_fit],
+    ['能力概要', cardModel.summary],
+    ['服务包', cardModel.servicePackage],
+    ['不适合', cardModel.notFit],
   ]) {
     const group = documentObject.createElement('div');
     const term = documentObject.createElement('dt');
     const description = documentObject.createElement('dd');
     term.textContent = label;
-    description.textContent = cleanText(value, 2000);
+    description.textContent = value;
     group.append(term, description);
     details.append(group);
   }
-  card.append(top, title, headline, meta, tags, details);
+  const evidence = documentObject.createElement('p');
+  evidence.className = 'talent-evidence';
+  evidence.textContent = cardModel.evidence;
+  const link = documentObject.createElement('a');
+  link.className = 'talent-profile-link';
+  link.href = cardModel.profilePath;
+  link.textContent = '查看独立主页';
+  link.setAttribute('aria-label', `查看 ${cleanText(talent.display_name, 180)} 的独立主页`);
+  card.append(top, title, headline, meta, tags, details, evidence, link);
   return card;
 }
 

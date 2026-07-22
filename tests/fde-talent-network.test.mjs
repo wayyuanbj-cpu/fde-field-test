@@ -18,7 +18,7 @@ for (const [path, phrase] of [
   assert.match(read(path), new RegExp(phrase));
 }
 
-const { normalizeFilters } = await import('../talents/talents.js');
+const { buildTalentCardModel, normalizeFilters } = await import('../talents/talents.js');
 const {
   presentTalent,
   profilePath,
@@ -55,6 +55,27 @@ assert.equal(
   '尚未完成 OneX 认证',
 );
 
+const card = buildTalentCardModel({
+  slug: 'manufacturing-kb-fde',
+  display_name: '制造业知识库 FDE',
+  headline: '把复杂现场知识变成可运行的 AI 流程',
+  city: '北京',
+  service_mode: 'hybrid',
+  availability: 'available',
+  status: 'member',
+  summary: '擅长知识梳理、检索设计与一线试点。',
+  service_package: '两周问题诊断与试点设计。',
+  evidence_summary: '已完成脱敏调研纪要和验收清单。',
+  not_fit: '不承接只要求演示的项目。',
+  tags: ['制造业', '知识库'],
+  certification_label: '尚未完成 OneX 认证',
+});
+assert.equal(card.profilePath, '/talents/manufacturing-kb-fde/');
+assert.equal(card.statusLabel, '人才库成员');
+assert.equal(card.certificationLabel, '尚未完成 OneX 认证');
+assert.equal(card.evidence, '已完成脱敏调研纪要和验收清单。');
+assert.deepEqual(card.tags, ['制造业', '知识库']);
+
 assert.deepEqual(
   normalizeFilters(new URLSearchParams('status=member&city=%E5%8C%97%E4%BA%AC')),
   { status: 'member', city: '北京', tag: '', availability: '' },
@@ -66,6 +87,15 @@ assert.deepEqual(
 
 const directoryHtml = read('talents/index.html');
 const directoryCss = read('talents/talents.css');
+const directoryScript = read('talents/talents.js');
+
+for (const id of ['talent-filters', 'directory-state', 'talent-grid']) {
+  assert.match(directoryHtml, new RegExp(`id="${id}"`));
+}
+for (const fieldName of ['status', 'city', 'tag', 'availability']) {
+  assert.match(directoryHtml, new RegExp(`name="${fieldName}"`));
+}
+assert.match(directoryHtml, /<script type="module" src="\.\/talents\.js"><\/script>/);
 
 for (const phrase of [
   '按交付能力，找到合适的 FDE。',
@@ -83,7 +113,12 @@ for (const selector of [
   '.match-console',
   '.talent-status-guide',
   '.network-next-actions',
+  '.talent-status',
+  '.talent-profile-link',
 ]) assert.match(directoryCss, new RegExp(selector.replace('.', '\\.')));
+
+assert.match(directoryScript, /talent-status/);
+assert.match(directoryScript, /talent-profile-link/);
 
 assert.match(directoryCss, /--navy-950:\s*#061427/i);
 assert.match(directoryCss, /--cobalt:\s*#3f67ff/i);

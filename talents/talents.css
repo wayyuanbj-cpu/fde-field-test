@@ -50,7 +50,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .talent-card { min-width:0; padding:28px; border:1px solid var(--line); background:var(--navy-900); }
 .talent-card-top { display:flex; justify-content:space-between; gap:16px; }
 .talent-card-code { color:var(--cobalt); font:10px/1 var(--mono); letter-spacing:.1em; }
+.talent-status { color:var(--mist); font:10px/1.4 var(--mono); letter-spacing:.08em; }
 .talent-certification { padding:6px 8px; color:#ffb49a; border:1px solid #8d4f3a; font-size:10px; font-weight:700; }
+.talent-certification { color:var(--orange); border-color:rgba(255,114,72,.5); }
+.talent-certification.is-certified { color:#9cc7ff; border-color:rgba(63,103,255,.65); }
 .talent-card h2 { margin:42px 0 8px; font-size:27px; letter-spacing:-.035em; }
 .talent-card h3 { margin:0; color:var(--mist); font-size:14px; font-weight:500; line-height:1.5; }
 .talent-meta,.talent-tags { margin-top:22px; display:flex; flex-wrap:wrap; gap:7px; }
@@ -58,6 +61,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .talent-card dl { margin:26px 0 0; display:grid; gap:16px; }
 .talent-card dt { color:var(--cobalt); font:9px/1 var(--mono); letter-spacing:.1em; }
 .talent-card dd { margin:6px 0 0; color:var(--mist); font-size:13px; line-height:1.7; }
+.talent-evidence { margin:18px 0 0; padding-top:18px; color:var(--mist); border-top:1px solid var(--line); font-size:13px; line-height:1.7; }
+.talent-profile-link { margin-top:24px; min-height:46px; display:inline-flex; align-items:center; color:var(--ice); text-decoration:none; border-bottom:1px solid var(--cobalt); }
+.talent-profile-link::after { content:'↗'; margin-left:12px; color:var(--cobalt); }
 .empty-panel { padding:48px; border:1px dashed var(--line); text-align:center; color:var(--mist); }
 .empty-panel button { margin-top:16px; padding:10px 16px; border:1px solid var(--line); background:transparent; color:var(--ice); cursor:pointer; }
 .network-next-actions { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--line); }
