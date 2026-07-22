@@ -85,7 +85,12 @@ export function renderTalentCard(talent, documentObject = document) {
   }
   const evidence = documentObject.createElement('p');
   evidence.className = 'talent-evidence';
-  evidence.textContent = cardModel.evidence;
+  const evidenceLabel = documentObject.createElement('strong');
+  evidenceLabel.className = 'talent-evidence-label';
+  evidenceLabel.textContent = '可核验的脱敏证据';
+  const evidenceValue = documentObject.createElement('span');
+  evidenceValue.textContent = cardModel.evidence;
+  evidence.append(evidenceLabel, evidenceValue);
   card.append(top, title, headline, meta, tags, details, evidence);
   if (cardModel.profilePath) {
     const link = documentObject.createElement('a');
@@ -116,6 +121,7 @@ async function loadDirectory(documentObject, environment) {
     try {
       const response = await environment.fetch(`/api/network/public/talents?${params}`, {
         credentials: 'same-origin',
+        cache: 'no-store',
         headers: { Accept: 'application/json' },
       });
       if (!response.ok) throw new Error(response.status === 404 ? 'disabled' : 'failed');
@@ -141,6 +147,15 @@ async function loadDirectory(documentObject, environment) {
       retry.textContent = '重试';
       retry.addEventListener('click', refresh);
       empty.append(documentObject.createElement('br'), retry);
+      const recovery = documentObject.createElement('nav');
+      recovery.className = 'network-recovery-links';
+      for (const [href, label] of [['/', 'FDE 公开测试'], ['/fde-training/', 'FDE 小班培训']]) {
+        const link = documentObject.createElement('a');
+        link.href = href;
+        link.textContent = label;
+        recovery.append(link);
+      }
+      empty.append(recovery);
       grid.append(empty);
     }
   }

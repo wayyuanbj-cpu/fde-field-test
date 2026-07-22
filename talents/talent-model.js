@@ -31,13 +31,11 @@ export function profileSlug(pathname) {
 
 export function presentTalent(talent) {
   const status = STATUS_LABELS[talent?.status] ? talent.status : 'member';
-  const isCertified = status === 'certified' || status === 'delivery';
+  const isCertified = talent?.certification_status === 'certified';
   return {
     slug: SLUG.test(String(talent?.slug ?? '')) ? talent.slug : '',
     statusLabel: STATUS_LABELS[status],
-    certificationLabel: isCertified
-      ? String(talent?.certification_label || '尚未完成 OneX 认证')
-      : '尚未完成 OneX 认证',
+    certificationLabel: isCertified ? 'OneX 认证 FDE' : '尚未完成 OneX 认证',
     serviceModeLabel: SERVICE_MODE_LABELS[talent?.service_mode] ?? '服务方式待确认',
     availabilityLabel: AVAILABILITY_LABELS[talent?.availability] ?? '档期待确认',
     isCertified,

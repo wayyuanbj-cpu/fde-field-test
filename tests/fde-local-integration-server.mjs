@@ -4,7 +4,8 @@ import { extname, resolve, sep } from 'node:path';
 
 const root = resolve(process.env.FDE_SITE_ROOT ?? process.cwd());
 const port = Number(process.env.FDE_INTEGRATION_PORT ?? 4175);
-const TALENT_PROFILE_PATH = /^\/talents\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/;
+const TALENT_PROFILE_PATH = /^\/talents\/[a-z0-9]+(?:-[a-z0-9]+)*\/$/;
+const TALENT_PROFILE_REDIRECT_PATH = /^\/talents\/[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const targets = [
   ['/api/commercial/', new URL(process.env.FDE_COMMERCIAL_API_URL ?? 'http://127.0.0.1:8767')],
   ['/api/analytics/', new URL(process.env.FDE_ANALYTICS_API_URL ?? 'http://127.0.0.1:8765')],
@@ -54,6 +55,11 @@ function staticFile(request, response) {
     pathname = decodeURIComponent(new URL(request.url, 'http://local').pathname);
   } catch {
     response.writeHead(400).end();
+    return;
+  }
+  if (TALENT_PROFILE_REDIRECT_PATH.test(pathname)) {
+    response.writeHead(301, { Location: `${pathname}/`, 'Cache-Control': 'no-store' });
+    response.end();
     return;
   }
   let file = TALENT_PROFILE_PATH.test(pathname)

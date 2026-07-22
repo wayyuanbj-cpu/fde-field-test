@@ -66,13 +66,16 @@ assert.match(nginx, /location \^~ \/api\/network\//);
 assert.match(nginx, /proxy_pass http:\/\/127\.0\.0\.1:8766/);
 assert.match(nginx, /location = \/api\/network\/config/);
 assert.match(nginx, /location \^~ \/api\/network\/public\//);
-assert.ok(nginx.includes('location ~ ^/talents/[a-z0-9]+(?:-[a-z0-9]+)*/?$ {'));
+assert.ok(nginx.includes('location ~ ^/talents/[a-z0-9]+(?:-[a-z0-9]+)*$ {'));
+assert.match(nginx, /return 301 \$uri\//);
+assert.ok(nginx.includes('location ~ ^/talents/[a-z0-9]+(?:-[a-z0-9]+)*/$ {'));
 assert.match(nginx, /try_files \/talents\/profile\.html =404/);
 const profileLocation = tlsServer.indexOf('location ~ ^/talents/');
 const genericStaticFallback = tlsServer.indexOf('    location / {');
 assert.ok(profileLocation >= 0 && profileLocation < genericStaticFallback, 'profile location must precede generic static fallback');
 assert.match(localServer, /TALENT_PROFILE_PATH/);
-assert.ok(localServer.includes('const TALENT_PROFILE_PATH = /^\\/talents\\/[a-z0-9]+(?:-[a-z0-9]+)*\\/?$/;'));
+assert.ok(localServer.includes('const TALENT_PROFILE_PATH = /^\\/talents\\/[a-z0-9]+(?:-[a-z0-9]+)*\\/$/;'));
+assert.match(localServer, /TALENT_PROFILE_REDIRECT_PATH/);
 assert.match(localServer, /talents', 'profile\.html/);
 assert.match(localServer, /FDE_NETWORK_API_URL/);
 const install = read('deploy/install-or-update.sh');
@@ -89,6 +92,8 @@ await withLocalIntegrationServer(async (port) => {
   const profile = await request(port, '/talents/manufacturing-kb-fde/');
   assert.equal(profile.status, 200);
   assert.match(profile.body, /id="profile-state"/);
+  const canonical = await request(port, '/talents/manufacturing-kb-fde');
+  assert.equal(canonical.status, 301);
 
   for (const pathname of ['/talents/Bad/', '/talents/a--b/', '/talents/a/b/']) {
     const response = await request(port, pathname);
@@ -96,4 +101,11 @@ await withLocalIntegrationServer(async (port) => {
     assert.doesNotMatch(response.body, /id="profile-state"/, `${pathname} must not serve the profile shell`);
   }
 });
+for (const block of [
+  /location = \/api\/network\/config \{[\s\S]*?\n    \}/,
+  /location \^~ \/api\/network\/public\/ \{[\s\S]*?\n    \}/,
+  /location ~ \^\/talents\/\[a-z0-9\][\s\S]*?profile\.html[\s\S]*?\n    \}/,
+]) {
+  assert.match(tlsServer.match(block)?.[0] ?? '', /Cache-Control "no-store" always/);
+}
 console.log('FDE network deployment contract passed');

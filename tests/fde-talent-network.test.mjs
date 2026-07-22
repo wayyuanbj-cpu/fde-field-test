@@ -8,6 +8,9 @@ assert.match(home, /我是 FDE/);
 assert.match(home, /我需要 FDE/);
 assert.match(home, /人才库成员不等于 OneX 认证 FDE/);
 assert.match(home, /id="network-entry"[^>]+hidden/);
+assert.match(home, /id="network-unavailable"[^>]+hidden/);
+assert.match(home, /href="\.\/"[^>]*>FDE 公开测试/);
+assert.match(home, /href="\.\/fde-training\/"[^>]*>FDE 小班培训/);
 
 for (const [path, phrase] of [
   ['become-fde/index.html', '公开挑战不是认证'],
@@ -35,6 +38,8 @@ assert.deepEqual(
     status: 'member',
     service_mode: 'hybrid',
     availability: 'available',
+    certification_status: 'not_certified',
+    delivery_status: 'verified',
     certification_label: '尚未完成 OneX 认证',
   }),
   {
@@ -47,12 +52,12 @@ assert.deepEqual(
   },
 );
 assert.equal(
-  presentTalent({ status: 'member', certification_label: 'OneX 认证 FDE' }).certificationLabel,
+  presentTalent({ status: 'delivery', certification_status: 'not_certified', certification_label: 'OneX 认证 FDE' }).certificationLabel,
   '尚未完成 OneX 认证',
 );
 assert.equal(
-  presentTalent({ status: 'cert_pending', certification_label: 'OneX 认证 FDE' }).certificationLabel,
-  '尚未完成 OneX 认证',
+  presentTalent({ status: 'member', certification_status: 'certified', delivery_status: 'unverified' }).certificationLabel,
+  'OneX 认证 FDE',
 );
 
 const card = buildTalentCardModel({
@@ -63,6 +68,8 @@ const card = buildTalentCardModel({
   service_mode: 'hybrid',
   availability: 'available',
   status: 'member',
+  certification_status: 'not_certified',
+  delivery_status: 'verified',
   summary: '擅长知识梳理、检索设计与一线试点。',
   service_package: '两周问题诊断与试点设计。',
   evidence_summary: '已完成脱敏调研纪要和验收清单。',
@@ -104,6 +111,13 @@ const invalidProfileCard = renderTalentCard({
   tags: [],
 }, createDocumentFixture());
 assert.equal(findByClassName(invalidProfileCard, 'talent-profile-link'), null);
+const renderedCard = renderTalentCard({
+  slug: 'delivery-only', display_name: '交付 FDE', headline: '交付能力', city: '北京',
+  service_mode: 'hybrid', availability: 'available', status: 'delivery',
+  certification_status: 'not_certified', delivery_status: 'verified',
+  summary: '概要', service_package: '服务包', evidence_summary: '脱敏证据', not_fit: '边界', tags: ['交付'],
+}, createDocumentFixture());
+assert.equal(findByClassName(renderedCard, 'talent-evidence-label').textContent, '可核验的脱敏证据');
 
 assert.deepEqual(
   normalizeFilters(new URLSearchParams('status=member&city=%E5%8C%97%E4%BA%AC')),
@@ -125,6 +139,8 @@ for (const fieldName of ['status', 'city', 'tag', 'availability']) {
   assert.match(directoryHtml, new RegExp(`name="${fieldName}"`));
 }
 assert.match(directoryHtml, /<script type="module" src="\.\/talents\.js"><\/script>/);
+assert.match(directoryHtml, /href="\/"[^>]*>FDE 公开测试/);
+assert.match(directoryHtml, /href="\/fde-training\/"[^>]*>FDE 小班培训/);
 
 for (const phrase of [
   '按交付能力，找到合适的 FDE。',
@@ -168,21 +184,25 @@ assert.match(profileHtml, /id="profile-content"[^>]+hidden/);
 assert.match(profileHtml, /id="profile-request-link"/);
 assert.match(profileHtml, /href="\/talents\/talents\.css"/);
 assert.match(profileHtml, /src="\/talents\/profile\.js"/);
-assert.doesNotMatch(profileHtml, /头像|照片|手机号|微信|邮箱|真实姓名/);
+assert.match(profileHtml, /公开页不展示真实姓名、手机、邮箱、微信、客户机密或精确考试分数/);
+assert.doesNotMatch(profileHtml + profileScript, /13800000000|private@example\.com|wxid_|tel:|mailto:/i);
+for (const id of ['profile-test-link', 'profile-training-link']) assert.match(profileHtml, new RegExp(`id="${id}"`));
 assert.doesNotMatch(profileScript, /innerHTML/);
 assert.match(directoryCss, /\.profile-content\s*\{[^}]*overflow-wrap:\s*anywhere/);
 assert.match(directoryCss, /\.profile-hero\s*>\s*\*,\s*\.delivery-trail article,\s*\.profile-conversion\s*>\s*\*\s*\{[^}]*min-width:\s*0/);
 
 const { loadTalentProfile, renderTalentProfile } = await import('../talents/profile.js');
 const requests = [];
-const loaded = await loadTalentProfile(async (url) => {
-  requests.push(url);
+const loaded = await loadTalentProfile(async (url, options) => {
+  requests.push([url, options]);
   if (url === '/api/network/config') {
     return { ok: true, json: async () => ({ features: { network_enabled: true, talent_directory_enabled: true } }) };
   }
   return { ok: true, json: async () => ({ talent: { slug: 'manufacturing-kb-fde', display_name: '制造业知识库 FDE' } }) };
 }, '/talents/manufacturing-kb-fde/');
-assert.equal(requests[1], '/api/network/public/talents/manufacturing-kb-fde');
+assert.equal(requests[1][0], '/api/network/public/talents/manufacturing-kb-fde');
+assert.equal(requests[0][1].cache, 'no-store');
+assert.equal(requests[1][1].cache, 'no-store');
 assert.equal(loaded.slug, 'manufacturing-kb-fde');
 
 let missingRequest = 0;
@@ -200,6 +220,19 @@ await assert.rejects(() => loadTalentProfile(async (url) => {
   return { ok: true, json: async () => ({ features: { network_enabled: true, talent_directory_enabled: false } }) };
 }, '/talents/manufacturing-kb-fde/'), /人才网络正在灰度准备中/);
 assert.deepEqual(disabledRequests, ['/api/network/config']);
+
+await assert.rejects(() => loadTalentProfile(async (url) => {
+  if (url === '/api/network/config') {
+    return { ok: true, json: async () => ({ features: { network_enabled: true, talent_directory_enabled: true } }) };
+  }
+  return { ok: true, json: async () => { throw new SyntaxError('Unexpected token <'); } };
+}, '/talents/manufacturing-kb-fde/'), /^Error: 人才档案暂时读取失败$/);
+await assert.rejects(() => loadTalentProfile(async (url) => {
+  if (url === '/api/network/config') {
+    return { ok: true, json: async () => ({ features: { network_enabled: true, talent_directory_enabled: true } }) };
+  }
+  throw new Error('socket path /private/raw');
+}, '/talents/manufacturing-kb-fde/'), /^Error: 人才档案暂时读取失败$/);
 
 function createProfileDocumentFixture() {
   const ids = [
@@ -248,5 +281,6 @@ assert.equal(profileDocument.nodes['profile-request-link'].href, '/enterprise/?t
 assert.equal(profileDocument.nodes['profile-canonical'].href, 'https://fde.onex.plus/talents/manufacturing-kb-fde/');
 assert.equal(profileDocument.nodes['profile-state'].hidden, true);
 assert.equal(profileDocument.nodes['profile-content'].hidden, false);
+assert.doesNotMatch(JSON.stringify(profileDocument.nodes), /13800000000|private\.jpg|photo_url|phone/);
 
 console.log('FDE talent network deterministic checks passed');

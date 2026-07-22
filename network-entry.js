@@ -13,6 +13,7 @@ export async function loadNetworkConfig(fetchImpl = globalThis.fetch) {
 
 async function setup(documentObject, environment = globalThis) {
   const entry = documentObject.querySelector('#network-entry');
+  const unavailable = documentObject.querySelector('#network-unavailable');
   if (!entry) return;
   const hostname = environment.location?.hostname;
   if (
@@ -20,13 +21,17 @@ async function setup(documentObject, environment = globalThis) {
     && environment.__FDE_NETWORK_PREVIEW__ !== true
   ) {
     entry.hidden = true;
+    if (unavailable) unavailable.hidden = true;
     return;
   }
   try {
     const config = await loadNetworkConfig(environment.fetch?.bind(environment));
-    if (config.network_enabled) entry.hidden = false;
+    const enabled = config.network_enabled && config.talent_directory_enabled;
+    entry.hidden = !enabled;
+    if (unavailable) unavailable.hidden = enabled;
   } catch {
     entry.hidden = true;
+    if (unavailable) unavailable.hidden = false;
   }
 }
 

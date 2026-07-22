@@ -4,24 +4,46 @@ export async function loadTalentProfile(fetchImpl, pathname) {
   const slug = profileSlug(pathname);
   if (!slug) throw new Error('没有找到这份公开档案');
 
-  const configResponse = await fetchImpl('/api/network/config', {
-    credentials: 'same-origin',
-    headers: { Accept: 'application/json' },
-  });
-  if (!configResponse.ok) throw new Error('人才网络暂时无法读取');
-  const config = await configResponse.json();
+  let configResponse;
+  try {
+    configResponse = await fetchImpl('/api/network/config', {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { Accept: 'application/json' },
+    });
+  } catch {
+    throw new Error('人才档案暂时读取失败');
+  }
+  if (!configResponse.ok) throw new Error('人才档案暂时读取失败');
+  let config;
+  try {
+    config = await configResponse.json();
+  } catch {
+    throw new Error('人才档案暂时读取失败');
+  }
   if (config?.features?.network_enabled !== true || config?.features?.talent_directory_enabled !== true) {
     throw new Error('人才网络正在灰度准备中');
   }
 
-  const response = await fetchImpl(`/api/network/public/talents/${slug}`, {
-    credentials: 'same-origin',
-    headers: { Accept: 'application/json' },
-  });
+  let response;
+  try {
+    response = await fetchImpl(`/api/network/public/talents/${slug}`, {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { Accept: 'application/json' },
+    });
+  } catch {
+    throw new Error('人才档案暂时读取失败');
+  }
   if (!response.ok) {
     throw new Error(response.status === 404 ? '没有找到这份公开档案' : '人才档案暂时读取失败');
   }
-  const payload = await response.json();
+  let payload;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new Error('人才档案暂时读取失败');
+  }
   if (!payload?.talent || payload.talent.slug !== slug) throw new Error('人才档案暂时读取失败');
   return payload.talent;
 }
@@ -65,6 +87,8 @@ export function renderTalentProfile(documentObject, talent) {
   documentObject.getElementById('profile-canonical').href = `https://fde.onex.plus/talents/${view.slug}/`;
   documentObject.title = `${talent.display_name}｜OneX FDE 人才网络`;
   documentObject.getElementById('profile-state').hidden = true;
+  const recovery = documentObject.getElementById('profile-recovery');
+  if (recovery) recovery.hidden = true;
   documentObject.getElementById('profile-content').hidden = false;
 }
 
