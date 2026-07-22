@@ -4,10 +4,58 @@
   <link rel="canonical" href="https://fde.onex.plus/talents/" /><link rel="icon" href="../logo.svg" type="image/svg+xml" /><link rel="stylesheet" href="./talents.css" />
 </head><body>
   <header class="network-header"><a class="network-brand" href="../"><img src="../logo.svg" alt="" /><span><strong>ONEX FDE NETWORK</strong><small>PUBLIC TALENT DIRECTORY</small></span></a><nav><a href="../enterprise/">企业入口</a><a href="../talent/apply/">我是 FDE</a><a href="../become-fde/">成长路径</a></nav></header>
-  <main class="network-main"><section class="directory-head"><div><p class="page-code">AUTHORIZED PUBLIC PROFILES</p><h1>FDE 人才目录</h1></div><p>这里只展示本人授权且经过运营发布的脱敏资料。未认证成员会持续显示“尚未完成 OneX 认证”，不会出现平台认证徽章。</p></section>
-    <form id="talent-filters" class="filter-bar"><label>成员状态<select name="status"><option value="">全部公开成员</option><option value="member">人才库成员</option><option value="cert_pending">认证审核中</option><option value="certified">已认证</option><option value="delivery">有交付记录</option></select></label><label>城市<input name="city" maxlength="80" placeholder="例如：北京" /></label><label>能力标签<input name="tag" maxlength="80" placeholder="例如：知识库" /></label><label>可用状态<select name="availability"><option value="">全部</option><option value="available">可对接</option><option value="limited">排期有限</option><option value="unavailable">暂不可用</option></select></label><button type="submit">应用筛选</button></form>
-    <p id="directory-state" class="directory-state" aria-live="polite">正在读取人才目录…</p><section id="talent-grid" class="talent-grid" aria-label="公开人才档案"></section>
-    <div class="boundary-panel"><strong>尚未完成 OneX 认证</strong><p>这是未认证成员的固定公开标签。人才库入库只说明资料已按当前规则审核发布，不代表正式认证、徽章或真实项目能力的最终结论。</p></div>
+  <main class="network-main" id="main-content">
+    <section class="directory-hero" aria-labelledby="directory-title">
+      <div class="directory-hero-copy">
+        <p class="page-code">ONEX FDE NETWORK / FIND DELIVERY CAPABILITY</p>
+        <h1 id="directory-title" aria-label="按交付能力，找到合适的 FDE。">按交付能力，<span>找到合适的 FDE。</span></h1>
+        <p>先看能解决的问题、服务边界与脱敏交付证据，再由 OneX 运营确认项目适配。这里不是公开考试排行榜。</p>
+        <div class="network-hero-actions">
+          <a class="network-button" href="#directory">浏览人才</a>
+          <a class="network-button secondary" href="../enterprise/">企业提交项目需求</a>
+        </div>
+      </div>
+      <aside class="match-console" aria-label="项目匹配控制台">
+        <p class="console-title">项目匹配控制台</p>
+        <dl>
+          <div><dt>企业问题</dt><dd>知识无法稳定复用</dd></div>
+          <div><dt>项目阶段</dt><dd>诊断与试点设计</dd></div>
+          <div><dt>协作方式</dt><dd>远程 + 关键节点驻场</dd></div>
+          <div><dt>选择依据</dt><dd>服务包、证据与能力边界</dd></div>
+        </dl>
+        <p>先定义问题，再选择工程师。</p>
+      </aside>
+    </section>
+
+    <section class="talent-status-guide" aria-labelledby="status-guide-title">
+      <div><p class="page-code">STATUS IS NOT A SCORE</p><h2 id="status-guide-title">先看清人才状态。</h2></div>
+      <div class="status-track">
+        <article><strong>人才库成员</strong><p>资料已授权发布，尚未完成 OneX 认证。</p></article>
+        <article><strong>认证审核中</strong><p>已进入认证流程，不代表已经通过。</p></article>
+        <article><strong>OneX 认证 FDE</strong><p>已完成规定的综合认证流程。</p></article>
+        <article><strong>OneX 交付 FDE</strong><p>存在经授权和核验的交付记录。</p></article>
+      </div>
+    </section>
+
+    <section id="directory" class="directory-section" aria-labelledby="directory-list-title">
+      <div class="directory-section-head"><div><p class="page-code">AUTHORIZED PUBLIC PROFILES</p><h2 id="directory-list-title">按项目条件筛选</h2></div><p>只展示本人授权、运营审核并完成脱敏的公开字段。</p></div>
+      <form id="talent-filters" class="filter-bar">
+        <label>成员状态<select name="status"><option value="">全部公开成员</option><option value="member">人才库成员</option><option value="cert_pending">认证审核中</option><option value="certified">已认证</option><option value="delivery">有交付记录</option></select></label>
+        <label>城市<input name="city" maxlength="80" placeholder="例如：北京" /></label>
+        <label>能力标签<input name="tag" maxlength="80" placeholder="例如：知识库" /></label>
+        <label>可用状态<select name="availability"><option value="">全部</option><option value="available">可对接</option><option value="limited">排期有限</option><option value="unavailable">暂不可用</option></select></label>
+        <button type="submit">应用筛选</button>
+      </form>
+      <p id="directory-state" class="directory-state" aria-live="polite">正在读取人才目录…</p>
+      <section id="talent-grid" class="talent-grid" aria-label="公开人才档案"></section>
+    </section>
+
+    <aside class="boundary-panel"><strong>人才库展示不等于正式认证。</strong><p>未认证成员始终显示“尚未完成 OneX 认证”。公开测试分、培训结业、入库状态、认证结果和项目交付记录分别保存、分别展示。</p></aside>
+
+    <section class="network-next-actions" aria-label="人才网络下一步">
+      <article><p class="page-code">FOR ENTERPRISE</p><h2>带着真实问题找 FDE。</h2><a href="../enterprise/">企业提交项目需求</a></article>
+      <article><p class="page-code">FOR ENGINEERS</p><h2>已有交付经验，申请进入人才网络。</h2><a href="../talent/apply/">我是 FDE，申请入库</a></article>
+    </section>
   </main><footer class="network-footer"><span>公开目录不展示真实姓名、手机、邮箱、微信或精确考试分数</span><span>版权所有 © 2026 OneX AI 社区</span></footer>
   <script type="module" src="./talents.js"></script>
 </body></html>

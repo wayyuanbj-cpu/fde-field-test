@@ -64,4 +64,30 @@ assert.deepEqual(
   { status: '', city: '', tag: '', availability: '' },
 );
 
+const directoryHtml = read('talents/index.html');
+const directoryCss = read('talents/talents.css');
+
+for (const phrase of [
+  '按交付能力，找到合适的 FDE。',
+  '项目匹配控制台',
+  '人才库成员',
+  '认证审核中',
+  'OneX 认证 FDE',
+  'OneX 交付 FDE',
+  '企业提交项目需求',
+  '我是 FDE，申请入库',
+]) assert.match(directoryHtml, new RegExp(phrase));
+
+for (const selector of [
+  '.directory-hero',
+  '.match-console',
+  '.talent-status-guide',
+  '.network-next-actions',
+]) assert.match(directoryCss, new RegExp(selector.replace('.', '\\.')));
+
+assert.match(directoryCss, /--navy-950:\s*#061427/i);
+assert.match(directoryCss, /--cobalt:\s*#3f67ff/i);
+assert.match(directoryCss, /@media \(prefers-reduced-motion: reduce\)/);
+assert.doesNotMatch(directoryHtml, /成功率|合作企业\s*\d+|工程师\s*\d+\s*位|剩余名额/);
+
 console.log('FDE talent network deterministic checks passed');
