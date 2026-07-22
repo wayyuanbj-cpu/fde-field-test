@@ -305,17 +305,17 @@ At `max-width: 760px`, collapse `.outcomes-grid` and `.graduation-thresholds` to
 
 - [ ] **Step 7: Run deterministic and browser tests**
 
-Start the existing test server in one terminal:
+Start the repository's static test server in one terminal:
 
 ```bash
-FDE_NETWORK_PORT=4174 python3 server/fde_network.py
+python3 -m http.server 4174 --bind 127.0.0.1
 ```
 
 Run:
 
 ```bash
 node tests/fde-training.test.mjs
-FDE_TEST_URL=http://127.0.0.1:4174/ node tests/fde-training-browser.mjs
+NODE_PATH="$HOME/.npm/_npx/e41f203b7505f1fb/node_modules" FDE_TEST_URL=http://127.0.0.1:4174/ node tests/fde-training-browser.mjs
 ```
 
 Expected: both print their PASS messages with no console errors and no horizontal overflow.
@@ -346,7 +346,7 @@ git commit -m "feat: align FDE training with test UI system"
 
 ```bash
 node tests/fde-training.test.mjs
-FDE_TEST_URL=http://127.0.0.1:4174/ node tests/fde-training-browser.mjs
+NODE_PATH="$HOME/.npm/_npx/e41f203b7505f1fb/node_modules" FDE_TEST_URL=http://127.0.0.1:4174/ node tests/fde-training-browser.mjs
 ```
 
 Expected: deterministic and browser PASS messages.

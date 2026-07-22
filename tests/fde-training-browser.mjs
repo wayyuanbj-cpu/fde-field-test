@@ -92,6 +92,14 @@ try {
       await openTrainingPage({ width: 1365, height: 900 });
     assert.equal(await page.getByRole('heading', { name: /从会用 AI/ }).isVisible(), true);
     assert.equal(await page.getByRole('link', { name: '申请加入小班' }).first().isVisible(), true);
+    assert.equal(await page.getByRole('heading', { name: '你会完整跑一遍企业 AI 交付。' }).isVisible(), true);
+    assert.equal(await page.getByRole('heading', { name: '结业不是听完课，是交出一个可验收项目包。' }).isVisible(), true);
+    assert.equal(await page.locator('.outcome-card').count(), 6);
+    assert.equal(await page.locator('.rubric-list li').count(), 6);
+    assert.equal(
+      await page.evaluate(() => getComputedStyle(document.body).backgroundColor),
+      'rgb(7, 22, 43)',
+    );
     assert.equal(await page.locator('#product-state').innerText(), '开放申请');
     assert.equal(await page.locator('.hero-visual img').evaluate((image) => image.complete && image.naturalWidth > 1000), true);
     assert.equal(
@@ -148,6 +156,14 @@ try {
     assert.equal(await page.getByRole('link', { name: '申请加入小班' }).first().isVisible(), true);
     assert.equal(await page.locator('.training-header nav').isHidden(), true);
     assert.match(await page.locator('.hero-visual figcaption').innerText(), /每期最多 10 人/);
+    assert.equal(await page.locator('.outcome-card').count(), 6);
+    await page.locator('#graduation').scrollIntoViewIfNeeded();
+    assert.equal(await page.getByText('70', { exact: true }).isVisible(), true);
+    assert.equal(await page.getByText('85+', { exact: true }).isVisible(), true);
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
+      true,
+    );
     assert.deepEqual(errors, []);
     await context.close();
   }

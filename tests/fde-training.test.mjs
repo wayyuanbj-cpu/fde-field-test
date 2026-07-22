@@ -5,6 +5,7 @@ import path from 'node:path';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const html = await readFile(path.join(root, 'fde-training/index.html'), 'utf8');
+const trainingCss = await readFile(path.join(root, 'fde-training/training.css'), 'utf8');
 const homeHtml = await readFile(path.join(root, 'index.html'), 'utf8');
 const quickApp = await readFile(path.join(root, 'app.js'), 'utf8');
 const examApp = await readFile(path.join(root, 'exam-app.js'), 'utf8');
@@ -50,6 +51,21 @@ for (const rule of [
   assert.match(html, new RegExp(rule));
 }
 assert.match(html, /允许使用 AI，但必须能解释自己的诊断、方案选择和实现过程/);
+for (const token of [
+  '--navy-950: #030b17',
+  '--navy-900: #07162b',
+  '--navy-800: #0c2a4d',
+  '--cobalt: #2962ff',
+  '--orange: #ff5a1f',
+  '--white: #f4f7fb',
+  '--steel: #92a4b8',
+]) {
+  assert.match(trainingCss, new RegExp(token));
+}
+assert.doesNotMatch(trainingCss, /@media \(prefers-color-scheme: dark\)/);
+assert.match(trainingCss, /\.outcomes-grid/);
+assert.match(trainingCss, /\.graduation-thresholds/);
+assert.match(trainingCss, /@media \(prefers-reduced-motion: reduce\)/);
 assert.match(homeHtml, /id="home-training-link"[^>]+fde-training\/\?source=direct/);
 assert.match(homeHtml, /id="quick-training-link"/);
 assert.match(homeHtml, /id="exam-training-link"/);
