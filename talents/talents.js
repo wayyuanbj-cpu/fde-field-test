@@ -86,12 +86,15 @@ export function renderTalentCard(talent, documentObject = document) {
   const evidence = documentObject.createElement('p');
   evidence.className = 'talent-evidence';
   evidence.textContent = cardModel.evidence;
-  const link = documentObject.createElement('a');
-  link.className = 'talent-profile-link';
-  link.href = cardModel.profilePath;
-  link.textContent = '查看独立主页';
-  link.setAttribute('aria-label', `查看 ${cleanText(talent.display_name, 180)} 的独立主页`);
-  card.append(top, title, headline, meta, tags, details, evidence, link);
+  card.append(top, title, headline, meta, tags, details, evidence);
+  if (cardModel.profilePath) {
+    const link = documentObject.createElement('a');
+    link.className = 'talent-profile-link';
+    link.href = cardModel.profilePath;
+    link.textContent = '查看独立主页';
+    link.setAttribute('aria-label', `查看 ${cleanText(talent.display_name, 180)} 的独立主页`);
+    card.append(link);
+  }
   return card;
 }
 

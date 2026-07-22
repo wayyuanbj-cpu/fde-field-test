@@ -18,7 +18,7 @@ for (const [path, phrase] of [
   assert.match(read(path), new RegExp(phrase));
 }
 
-const { buildTalentCardModel, normalizeFilters } = await import('../talents/talents.js');
+const { buildTalentCardModel, normalizeFilters, renderTalentCard } = await import('../talents/talents.js');
 const {
   presentTalent,
   profilePath,
@@ -75,6 +75,35 @@ assert.equal(card.statusLabel, '人才库成员');
 assert.equal(card.certificationLabel, '尚未完成 OneX 认证');
 assert.equal(card.evidence, '已完成脱敏调研纪要和验收清单。');
 assert.deepEqual(card.tags, ['制造业', '知识库']);
+
+function createDocumentFixture() {
+  return {
+    createElement(tagName) {
+      return {
+        tagName,
+        children: [],
+        append(...children) { this.children.push(...children); },
+        setAttribute(name, value) { this[name] = value; },
+      };
+    },
+  };
+}
+
+function findByClassName(element, className) {
+  if (String(element.className || '').split(' ').includes(className)) return element;
+  for (const child of element.children || []) {
+    const match = findByClassName(child, className);
+    if (match) return match;
+  }
+  return null;
+}
+
+const invalidProfileCard = renderTalentCard({
+  display_name: '无主页人才',
+  status: 'member',
+  tags: [],
+}, createDocumentFixture());
+assert.equal(findByClassName(invalidProfileCard, 'talent-profile-link'), null);
 
 assert.deepEqual(
   normalizeFilters(new URLSearchParams('status=member&city=%E5%8C%97%E4%BA%AC')),
