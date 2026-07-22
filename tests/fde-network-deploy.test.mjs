@@ -68,6 +68,7 @@ assert.match(nginx, /location = \/api\/network\/config/);
 assert.match(nginx, /location \^~ \/api\/network\/public\//);
 assert.ok(nginx.includes('location ~ ^/talents/[a-z0-9]+(?:-[a-z0-9]+)*$ {'));
 assert.match(nginx, /return 301 https:\/\/\$host\$uri\//);
+assert.match(nginx, /talent-model\\\.js/);
 assert.ok(nginx.includes('location ~ ^/talents/[a-z0-9]+(?:-[a-z0-9]+)*/$ {'));
 assert.match(nginx, /try_files \/talents\/profile\.html =404/);
 const profileLocation = tlsServer.indexOf('location ~ ^/talents/');
