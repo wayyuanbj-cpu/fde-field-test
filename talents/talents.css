@@ -74,7 +74,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .network-footer { padding:26px clamp(20px,5vw,72px); display:flex; justify-content:space-between; gap:20px; color:var(--mist); border-top:1px solid var(--line); font:10px/1.6 var(--mono); }
 .profile-main { padding-top:36px; }
 .profile-content[hidden] { display:none; }
+.profile-content { overflow-wrap:anywhere; }
 .profile-back { color:var(--mist); font-size:12px; text-decoration:none; }
+.profile-hero > *,.delivery-trail article,.profile-conversion > * { min-width:0; }
 .profile-hero { min-height:560px; display:grid; grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr); gap:72px; align-items:center; border-bottom:1px solid var(--line); }
 .profile-hero .page-code { margin-top:48px; }
 .profile-hero h1 { margin:20px 0; font-size:clamp(54px,7vw,96px); line-height:.94; letter-spacing:-.06em; }

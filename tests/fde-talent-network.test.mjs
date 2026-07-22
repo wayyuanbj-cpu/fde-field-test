@@ -159,6 +159,10 @@ const profileScript = read('talents/profile.js');
 for (const phrase of ['我能解决的问题', '标准服务包', '可核验的脱敏证据', '不适合的项目', '认证与交付状态']) {
   assert.match(profileHtml, new RegExp(phrase));
 }
+assert.match(
+  profileHtml,
+  /公开测试、培训结业、人才入库、正式认证和项目交付记录分别核验、分别存储、分别展示，任何一项都不能替代另一项。/,
+);
 assert.match(profileHtml, /id="profile-state"/);
 assert.match(profileHtml, /id="profile-content"[^>]+hidden/);
 assert.match(profileHtml, /id="profile-request-link"/);
@@ -166,6 +170,8 @@ assert.match(profileHtml, /href="\/talents\/talents\.css"/);
 assert.match(profileHtml, /src="\/talents\/profile\.js"/);
 assert.doesNotMatch(profileHtml, /头像|照片|手机号|微信|邮箱|真实姓名/);
 assert.doesNotMatch(profileScript, /innerHTML/);
+assert.match(directoryCss, /\.profile-content\s*\{[^}]*overflow-wrap:\s*anywhere/);
+assert.match(directoryCss, /\.profile-hero\s*>\s*\*,\s*\.delivery-trail article,\s*\.profile-conversion\s*>\s*\*\s*\{[^}]*min-width:\s*0/);
 
 const { loadTalentProfile, renderTalentProfile } = await import('../talents/profile.js');
 const requests = [];
