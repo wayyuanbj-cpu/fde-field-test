@@ -86,6 +86,33 @@ async function fillApplication(page) {
   await page.getByLabel(/我同意 OneX/).check();
 }
 
+async function contrastRatio(page, selector, backgroundHex) {
+  return page.locator(selector).first().evaluate((element, hex) => {
+    const parseRgb = (value) => {
+      const channels = value.match(/[\d.]+/g)?.slice(0, 3).map(Number);
+      if (!channels || channels.length !== 3) throw new Error(`无法解析颜色：${value}`);
+      return channels;
+    };
+    const parseHex = (value) => [
+      Number.parseInt(value.slice(1, 3), 16),
+      Number.parseInt(value.slice(3, 5), 16),
+      Number.parseInt(value.slice(5, 7), 16),
+    ];
+    const luminance = (channels) => {
+      const linear = channels.map((channel) => {
+        const normalized = channel / 255;
+        return normalized <= 0.04045
+          ? normalized / 12.92
+          : ((normalized + 0.055) / 1.055) ** 2.4;
+      });
+      return (0.2126 * linear[0]) + (0.7152 * linear[1]) + (0.0722 * linear[2]);
+    };
+    const foreground = luminance(parseRgb(getComputedStyle(element).color));
+    const background = luminance(parseHex(hex));
+    return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
+  }, backgroundHex);
+}
+
 try {
   {
     const { context, page, errors, applicationRequests, analyticsPayloads } =
@@ -160,6 +187,19 @@ try {
     await page.locator('#graduation').scrollIntoViewIfNeeded();
     assert.equal(await page.getByText('70', { exact: true }).isVisible(), true);
     assert.equal(await page.getByText('85+', { exact: true }).isVisible(), true);
+    for (const [selector, background, minimum] of [
+      ['.hero-kicker', '#07162b', 4.5],
+      ['.hero-visual figcaption strong', '#030b17', 4.5],
+      ['.practice-grid article:not(.practice-main) span', '#07162b', 4.5],
+      ['.graduation-thresholds > div:last-child strong', '#eef3f8', 3],
+      ['.boundary-label', '#0a1e40', 4.5],
+      ['.boundary-copy a', '#0a1e40', 4.5],
+    ]) {
+      assert.ok(
+        await contrastRatio(page, selector, background) >= minimum,
+        `${selector} must meet WCAG contrast ${minimum}:1`,
+      );
+    }
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
       true,
