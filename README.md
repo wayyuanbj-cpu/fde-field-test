@@ -9,6 +9,8 @@
 - `/fde-guide/`：中文 FDE 定义、职责、五维能力模型、角色对比与评估方法
 - `/en/fde-guide/`：独立撰写的英文 FDE 参考页
 - `/fde-training/`：OneX FDE 小班实战培训招生页，每班最多 10 人
+- `/talents/`：企业找 FDE 优先的公开人才目录，可按状态、城市、能力标签和档期筛选
+- `/talents/<slug>/`：每位已授权、已发布工程师的独立公开主页
 - `/robots.txt`、`/sitemap.xml`、`/llms.txt`：搜索与 AI 发现入口
 - `/stats/`：需账号登录的中文私有统计后台
 
@@ -130,6 +132,8 @@ Outbox 是本地事务记录，可调用 `fde_commercial.outbox.dispatch_pending
 ## FDE 人才网络服务
 
 人才网络使用独立 SQLite 数据库和 `127.0.0.1:8766`，不与匿名统计或招生商业库混用。本地启动需要 Python 3.11+：
+
+人才卡片与独立主页只读取 `fde_network` 的公开字段投影。工程师主页使用稳定 `slug` URL，不公开真实姓名、联系方式、客户机密或精确考试分数；企业合作先进入 OneX 统一需求入口。
 
 ```bash
 PYTHONPATH=backend FDE_NETWORK_DB=/tmp/fde-network.db python3 -m fde_network.app
