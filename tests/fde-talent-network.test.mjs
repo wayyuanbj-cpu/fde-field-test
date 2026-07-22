@@ -19,6 +19,34 @@ for (const [path, phrase] of [
 }
 
 const { normalizeFilters } = await import('../talents/talents.js');
+const {
+  presentTalent,
+  profilePath,
+  profileSlug,
+} = await import('../talents/talent-model.js');
+
+assert.equal(profilePath('manufacturing-kb-fde'), '/talents/manufacturing-kb-fde/');
+assert.equal(profilePath('../private'), '');
+assert.equal(profileSlug('/talents/manufacturing-kb-fde/'), 'manufacturing-kb-fde');
+assert.equal(profileSlug('/talents/missing/extra'), '');
+assert.deepEqual(
+  presentTalent({
+    slug: 'manufacturing-kb-fde',
+    status: 'member',
+    service_mode: 'hybrid',
+    availability: 'available',
+    certification_label: '尚未完成 OneX 认证',
+  }),
+  {
+    slug: 'manufacturing-kb-fde',
+    statusLabel: '人才库成员',
+    certificationLabel: '尚未完成 OneX 认证',
+    serviceModeLabel: '混合协作',
+    availabilityLabel: '可对接',
+    isCertified: false,
+  },
+);
+
 assert.deepEqual(
   normalizeFilters(new URLSearchParams('status=member&city=%E5%8C%97%E4%BA%AC')),
   { status: 'member', city: '北京', tag: '', availability: '' },
