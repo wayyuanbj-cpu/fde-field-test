@@ -52,7 +52,7 @@ class NetworkApiTests(unittest.TestCase):
             config["json"]["features"],
             {"network_enabled": False, "talent_directory_enabled": False},
         )
-        self.assertEqual(config["headers"]["Cache-Control"], "public, max-age=30")
+        self.assertEqual(config["headers"]["Cache-Control"], "no-store")
 
     def test_unknown_path_and_wrong_method_are_bounded(self):
         self.assertEqual(self.request("POST", "/api/network/config")["status"], 405)
@@ -78,6 +78,7 @@ class NetworkApiTests(unittest.TestCase):
             "/api/network/public/talents?status=member&city=%E5%8C%97%E4%BA%AC",
         )
         self.assertEqual(listing["status"], 200)
+        self.assertEqual(listing["headers"]["Cache-Control"], "no-store")
         self.assertEqual(len(listing["json"]["items"]), 1)
         serialized = json.dumps(listing["json"], ensure_ascii=False)
         self.assertNotIn("虚构姓名", serialized)
@@ -87,11 +88,26 @@ class NetworkApiTests(unittest.TestCase):
             "/api/network/public/talents/manufacturing-kb-fde",
         )
         self.assertEqual(detail["status"], 200)
+        self.assertEqual(detail["headers"]["Cache-Control"], "no-store")
         self.assertEqual(detail["json"]["talent"]["slug"], "manufacturing-kb-fde")
         self.assertEqual(
             self.request("GET", "/api/network/public/talents/missing")["status"],
             404,
         )
+
+        conn = connect(self.temp.name)
+        save_profile(
+            conn,
+            {**PROFILE_PAYLOAD, "public_authorized": False},
+            "operator:1",
+            self.now,
+        )
+        conn.close()
+        revoked = self.request(
+            "GET", "/api/network/public/talents/manufacturing-kb-fde"
+        )
+        self.assertEqual(revoked["status"], 404)
+        self.assertEqual(revoked["headers"]["Cache-Control"], "no-store")
 
 
 if __name__ == "__main__":

@@ -18,6 +18,8 @@ PROFILE_FIELDS = {
     "service_mode",
     "availability",
     "status",
+    "certification_status",
+    "delivery_status",
     "summary",
     "not_fit",
     "service_package",
@@ -34,6 +36,8 @@ PUBLIC_FIELDS = (
     "service_mode",
     "availability",
     "status",
+    "certification_status",
+    "delivery_status",
     "summary",
     "not_fit",
     "service_package",
@@ -45,6 +49,8 @@ PUBLIC_STATUSES = {"member", "cert_pending", "certified", "delivery"}
 SERVICE_MODES = {"remote", "onsite", "hybrid"}
 AVAILABILITY = {"available", "limited", "unavailable"}
 ALL_STATUSES = PUBLIC_STATUSES | {"inactive"}
+CERTIFICATION_STATUSES = {"not_certified", "pending", "certified"}
+DELIVERY_STATUSES = {"unverified", "verified"}
 LOCALES = {"zh-CN", "en"}
 FILTER_FIELDS = {"status", "tag", "city", "availability"}
 _SLUG = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -68,12 +74,13 @@ def save_profile(
         conn.execute("BEGIN IMMEDIATE")
     try:
         current = conn.execute(
-            "SELECT id, status FROM talent_profiles WHERE slug = ?",
+            "SELECT id, status, certification_status, delivery_status FROM talent_profiles WHERE slug = ?",
             (clean["slug"],),
         ).fetchone()
         values = tuple(clean[field] for field in (
             "display_name", "real_name", "headline", "city", "service_mode",
-            "availability", "status", "summary", "not_fit", "service_package",
+            "availability", "status", "certification_status", "delivery_status",
+            "summary", "not_fit", "service_package",
             "evidence_summary",
         ))
         if current is None:
@@ -81,10 +88,11 @@ def save_profile(
                 """
                 INSERT INTO talent_profiles(
                     slug, display_name, real_name, headline, city, service_mode,
-                    availability, status, summary, not_fit, service_package,
+                    availability, status, certification_status, delivery_status,
+                    summary, not_fit, service_package,
                     evidence_summary, public_authorized, locale, published_at,
                     created_at, updated_at
-                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,?,?)
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,?,?)
                 """,
                 (
                     clean["slug"], *values, int(clean["public_authorized"]),
@@ -100,7 +108,8 @@ def save_profile(
                 """
                 UPDATE talent_profiles SET
                     display_name=?, real_name=?, headline=?, city=?, service_mode=?,
-                    availability=?, status=?, summary=?, not_fit=?, service_package=?,
+                    availability=?, status=?, certification_status=?, delivery_status=?,
+                    summary=?, not_fit=?, service_package=?,
                     evidence_summary=?, public_authorized=?, locale=?, published_at=NULL,
                     updated_at=?
                 WHERE id=?
@@ -108,7 +117,11 @@ def save_profile(
                 (*values, int(clean["public_authorized"]), clean["locale"], stamp, profile_id),
             )
             action = "talent_profile.updated"
-            before = {"status": current["status"]}
+            before = {
+                "status": current["status"],
+                "certification_status": current["certification_status"],
+                "delivery_status": current["delivery_status"],
+            }
         conn.execute("DELETE FROM talent_tags WHERE profile_id = ?", (profile_id,))
         conn.executemany(
             "INSERT INTO talent_tags(profile_id, tag) VALUES(?, ?)",
@@ -121,7 +134,12 @@ def save_profile(
             object_type="talent_profile",
             object_id=clean["slug"],
             before=before,
-            after={"status": clean["status"], "public_authorized": clean["public_authorized"]},
+            after={
+                "status": clean["status"],
+                "certification_status": clean["certification_status"],
+                "delivery_status": clean["delivery_status"],
+                "public_authorized": clean["public_authorized"],
+            },
             now=now,
         )
         if owns_transaction:
@@ -168,7 +186,12 @@ def publish_profile(
             object_type="talent_profile",
             object_id=current["slug"],
             before={"published": bool(current["published_at"])},
-            after={"published": True, "status": current["status"]},
+            after={
+                "published": True,
+                "status": current["status"],
+                "certification_status": current["certification_status"],
+                "delivery_status": current["delivery_status"],
+            },
             now=now,
         )
         if owns_transaction:
@@ -248,7 +271,7 @@ def _public_profile(conn, row) -> dict:
     ]
     result["certification_label"] = (
         "尚未完成 OneX 认证"
-        if row["status"] in {"member", "cert_pending"}
+        if row["certification_status"] != "certified"
         else "OneX 认证 FDE"
     )
     return result
@@ -291,6 +314,10 @@ def _validate_profile(payload: dict) -> dict:
         raise ValidationError("invalid availability")
     if clean["status"] not in ALL_STATUSES:
         raise ValidationError("invalid status")
+    if clean["certification_status"] not in CERTIFICATION_STATUSES:
+        raise ValidationError("invalid certification status")
+    if clean["delivery_status"] not in DELIVERY_STATUSES:
+        raise ValidationError("invalid delivery status")
     if clean["locale"] not in LOCALES:
         raise ValidationError("invalid locale")
     if not isinstance(payload["public_authorized"], bool):

@@ -43,7 +43,6 @@ def create_app(db_path: str, now_provider=None):
                     start_response,
                     200,
                     {"features": public_config(conn)},
-                    [("Cache-Control", "public, max-age=30")],
                 )
             if path == "/api/network/public/talents":
                 if not _directory_enabled(conn):
@@ -54,7 +53,6 @@ def create_app(db_path: str, now_provider=None):
                     start_response,
                     200,
                     {"items": list_public_profiles(conn, filters), "filters": filters},
-                    [("Cache-Control", "public, max-age=60")],
                 )
             detail_match = _DETAIL_PATH.fullmatch(path)
             if detail_match:
@@ -67,7 +65,6 @@ def create_app(db_path: str, now_provider=None):
                     start_response,
                     200,
                     {"talent": talent},
-                    [("Cache-Control", "public, max-age=60")],
                 )
             return _response(start_response, 404, {"error": "not_found"})
         except ValidationError as exc:
@@ -91,6 +88,7 @@ def _response(start_response, status: int, payload: dict, headers=None):
         ("Content-Type", "application/json; charset=utf-8"),
         ("Content-Length", str(len(body))),
         ("X-Content-Type-Options", "nosniff"),
+        ("Cache-Control", "no-store"),
     ]
     response_headers.extend(headers or [])
     labels = {200: "OK", 400: "Bad Request", 404: "Not Found", 405: "Method Not Allowed", 500: "Internal Server Error"}

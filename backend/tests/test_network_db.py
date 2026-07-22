@@ -22,6 +22,8 @@ PROFILE_PAYLOAD = {
     "service_mode": "hybrid",
     "availability": "available",
     "status": "member",
+    "certification_status": "not_certified",
+    "delivery_status": "unverified",
     "summary": "擅长知识梳理、检索设计与一线试点。",
     "not_fit": "不承接只要求演示、不提供业务人员的项目。",
     "service_package": "两周问题诊断与知识库试点设计。",
@@ -63,7 +65,66 @@ class NetworkDatabaseTests(unittest.TestCase):
         )
         self.assertEqual(
             conn.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0],
-            1,
+            2,
+        )
+        columns = {
+            row[1] for row in conn.execute("PRAGMA table_info(talent_profiles)")
+        }
+        self.assertTrue({"certification_status", "delivery_status"}.issubset(columns))
+        conn.close()
+
+    def test_initialize_migrates_v1_statuses_without_certifying_delivery(self):
+        conn = connect(self.temp.name)
+        conn.executescript(
+            """
+            CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);
+            INSERT INTO schema_migrations VALUES (1, '2026-07-20T09:00:00Z');
+            CREATE TABLE talent_profiles (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                slug TEXT NOT NULL UNIQUE, display_name TEXT NOT NULL, real_name TEXT NOT NULL,
+                headline TEXT NOT NULL, city TEXT NOT NULL, service_mode TEXT NOT NULL,
+                availability TEXT NOT NULL, status TEXT NOT NULL, summary TEXT NOT NULL,
+                not_fit TEXT NOT NULL, service_package TEXT NOT NULL, evidence_summary TEXT NOT NULL,
+                public_authorized INTEGER NOT NULL DEFAULT 0, locale TEXT NOT NULL DEFAULT 'zh-CN',
+                published_at TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+            );
+            """
+        )
+        base = (
+            "name", "private", "headline", "city", "hybrid", "available",
+            "summary", "not fit", "package", "evidence", 1, "zh-CN", None,
+            "2026-07-20T09:00:00Z", "2026-07-20T09:00:00Z",
+        )
+        conn.execute(
+            """INSERT INTO talent_profiles(
+              slug, display_name, real_name, headline, city, service_mode, availability, status,
+              summary, not_fit, service_package, evidence_summary, public_authorized, locale,
+              published_at, created_at, updated_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            ("legacy-certified", base[0], base[1], base[2], base[3], base[4], base[5], "certified", *base[6:]),
+        )
+        conn.execute(
+            """INSERT INTO talent_profiles(
+              slug, display_name, real_name, headline, city, service_mode, availability, status,
+              summary, not_fit, service_package, evidence_summary, public_authorized, locale,
+              published_at, created_at, updated_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            ("legacy-delivery", base[0], base[1], base[2], base[3], base[4], base[5], "delivery", *base[6:]),
+        )
+        conn.commit()
+
+        initialize(conn, self.now)
+
+        certified = conn.execute(
+            "SELECT certification_status, delivery_status FROM talent_profiles WHERE slug='legacy-certified'"
+        ).fetchone()
+        delivery = conn.execute(
+            "SELECT certification_status, delivery_status FROM talent_profiles WHERE slug='legacy-delivery'"
+        ).fetchone()
+        self.assertEqual(tuple(certified), ("certified", "unverified"))
+        self.assertEqual(tuple(delivery), ("not_certified", "verified"))
+        self.assertEqual(
+            conn.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0], 2
         )
         conn.close()
 
@@ -123,6 +184,68 @@ class NetworkDatabaseTests(unittest.TestCase):
             profile = save_profile(conn, payload, "operator:1", self.now)
             with self.assertRaises(ValidationError):
                 publish_profile(conn, profile["id"], "operator:1", self.now)
+        conn.close()
+
+    def test_certification_and_delivery_are_independent_public_facts(self):
+        conn = connect(self.temp.name)
+        initialize(conn, self.now)
+        delivery = save_profile(
+            conn,
+            {
+                **PROFILE_PAYLOAD,
+                "slug": "delivery-only",
+                "status": "delivery",
+                "delivery_status": "verified",
+            },
+            "operator:1",
+            self.now,
+        )
+        certified = save_profile(
+            conn,
+            {
+                **PROFILE_PAYLOAD,
+                "slug": "certified-only",
+                "status": "certified",
+                "certification_status": "certified",
+            },
+            "operator:1",
+            self.now,
+        )
+        publish_profile(conn, delivery["id"], "operator:1", self.now)
+        publish_profile(conn, certified["id"], "operator:1", self.now)
+
+        delivery_public = get_public_profile(conn, "delivery-only")
+        certified_public = get_public_profile(conn, "certified-only")
+        self.assertEqual(delivery_public["delivery_status"], "verified")
+        self.assertEqual(delivery_public["certification_status"], "not_certified")
+        self.assertEqual(delivery_public["certification_label"], "尚未完成 OneX 认证")
+        self.assertEqual(certified_public["certification_status"], "certified")
+        self.assertEqual(certified_public["delivery_status"], "unverified")
+        self.assertEqual(certified_public["certification_label"], "OneX 认证 FDE")
+        published_audit = conn.execute(
+            "SELECT after_json FROM audit_events WHERE action='talent_profile.published' AND object_id='certified-only'"
+        ).fetchone()
+        self.assertEqual(
+            json.loads(published_audit["after_json"]),
+            {
+                "certification_status": "certified",
+                "delivery_status": "unverified",
+                "published": True,
+                "status": "certified",
+            },
+        )
+        for field, value in (
+            ("certification_status", "legacy_badge"),
+            ("delivery_status", "assumed"),
+        ):
+            with self.subTest(field=field):
+                with self.assertRaises(ValidationError):
+                    save_profile(
+                        conn,
+                        {**PROFILE_PAYLOAD, "slug": f"invalid-{field.replace('_', '-')}", field: value},
+                        "operator:1",
+                        self.now,
+                    )
         conn.close()
 
     def test_filters_are_allowlisted_and_parameterized(self):

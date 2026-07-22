@@ -8,6 +8,8 @@
     "service_mode": "hybrid",
     "availability": "available",
     "status": "member",
+    "certification_status": "not_certified",
+    "delivery_status": "unverified",
     "summary": "虚构示例：擅长知识梳理、检索设计与一线试点。",
     "not_fit": "不承接只要求演示、不提供业务人员的项目。",
     "service_package": "两周问题诊断与知识库试点设计。",

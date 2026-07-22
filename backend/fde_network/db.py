@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from datetime import datetime, timezone
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 DEFAULT_FLAGS = {
     "network_enabled": False,
     "talent_directory_enabled": False,
@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS talent_profiles (
     service_mode TEXT NOT NULL CHECK (service_mode IN ('remote', 'onsite', 'hybrid')),
     availability TEXT NOT NULL CHECK (availability IN ('available', 'limited', 'unavailable')),
     status TEXT NOT NULL CHECK (status IN ('member', 'cert_pending', 'certified', 'delivery', 'inactive')),
+    certification_status TEXT NOT NULL DEFAULT 'not_certified' CHECK (certification_status IN ('not_certified', 'pending', 'certified')),
+    delivery_status TEXT NOT NULL DEFAULT 'unverified' CHECK (delivery_status IN ('unverified', 'verified')),
     summary TEXT NOT NULL,
     not_fit TEXT NOT NULL,
     service_package TEXT NOT NULL,
@@ -107,14 +109,34 @@ def initialize(conn: sqlite3.Connection, now: datetime | None = None) -> None:
     with conn:
         conn.executescript(_SCHEMA_SQL)
         conn.execute(
-            "INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES(?, ?)",
-            (SCHEMA_VERSION, stamp),
+            "INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES(1, ?)",
+            (stamp,),
         )
+        _migrate_certification_and_delivery(conn, stamp)
         for key, enabled in DEFAULT_FLAGS.items():
             conn.execute(
                 "INSERT OR IGNORE INTO feature_flags(key, enabled, updated_at) VALUES(?,?,?)",
                 (key, int(enabled), stamp),
             )
+
+
+def _migrate_certification_and_delivery(conn: sqlite3.Connection, stamp: str) -> None:
+    if conn.execute("SELECT 1 FROM schema_migrations WHERE version=2").fetchone():
+        return
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(talent_profiles)")}
+    if "certification_status" not in columns:
+        conn.execute(
+            """ALTER TABLE talent_profiles ADD COLUMN certification_status TEXT NOT NULL
+            DEFAULT 'not_certified' CHECK (certification_status IN ('not_certified', 'pending', 'certified'))"""
+        )
+    if "delivery_status" not in columns:
+        conn.execute(
+            """ALTER TABLE talent_profiles ADD COLUMN delivery_status TEXT NOT NULL
+            DEFAULT 'unverified' CHECK (delivery_status IN ('unverified', 'verified'))"""
+        )
+    conn.execute("UPDATE talent_profiles SET certification_status='certified' WHERE status='certified'")
+    conn.execute("UPDATE talent_profiles SET delivery_status='verified' WHERE status='delivery'")
+    conn.execute("INSERT INTO schema_migrations(version, applied_at) VALUES(2, ?)", (stamp,))
 
 
 def public_config(conn: sqlite3.Connection) -> dict[str, bool]:

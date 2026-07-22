@@ -66,6 +66,10 @@ class NetworkImportTests(unittest.TestCase):
         schema = json.loads((root / "data/first-batch-talents.schema.json").read_text())
         self.assertTrue(records[0]["display_name"].startswith("示例"))
         properties = schema["items"]["properties"]
+        self.assertEqual(records[0]["certification_status"], "not_certified")
+        self.assertEqual(records[0]["delivery_status"], "unverified")
+        self.assertIn("certification_status", schema["items"]["required"])
+        self.assertIn("delivery_status", schema["items"]["required"])
         for key in ("phone", "mobile", "email", "wechat", "id_number"):
             self.assertNotIn(key, properties)
 

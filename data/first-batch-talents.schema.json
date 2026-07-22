@@ -8,7 +8,7 @@
     "additionalProperties": false,
     "required": [
       "slug", "display_name", "real_name", "headline", "city",
-      "service_mode", "availability", "status", "summary", "not_fit",
+      "service_mode", "availability", "status", "certification_status", "delivery_status", "summary", "not_fit",
       "service_package", "evidence_summary", "tags", "public_authorized", "locale"
     ],
     "properties": {
@@ -20,6 +20,8 @@
       "service_mode": { "enum": ["remote", "onsite", "hybrid"] },
       "availability": { "enum": ["available", "limited", "unavailable"] },
       "status": { "enum": ["member", "cert_pending", "certified", "delivery", "inactive"] },
+      "certification_status": { "enum": ["not_certified", "pending", "certified"] },
+      "delivery_status": { "enum": ["unverified", "verified"] },
       "summary": { "type": "string", "minLength": 1, "maxLength": 2000 },
       "not_fit": { "type": "string", "minLength": 1, "maxLength": 2000 },
       "service_package": { "type": "string", "minLength": 1, "maxLength": 2000 },
