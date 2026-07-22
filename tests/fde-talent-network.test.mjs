@@ -154,4 +154,93 @@ assert.match(directoryCss, /--cobalt:\s*#3f67ff/i);
 assert.match(directoryCss, /@media \(prefers-reduced-motion: reduce\)/);
 assert.doesNotMatch(directoryHtml, /成功率|合作企业\s*\d+|工程师\s*\d+\s*位|剩余名额/);
 
+const profileHtml = read('talents/profile.html');
+const profileScript = read('talents/profile.js');
+for (const phrase of ['我能解决的问题', '标准服务包', '可核验的脱敏证据', '不适合的项目', '认证与交付状态']) {
+  assert.match(profileHtml, new RegExp(phrase));
+}
+assert.match(profileHtml, /id="profile-state"/);
+assert.match(profileHtml, /id="profile-content"[^>]+hidden/);
+assert.match(profileHtml, /id="profile-request-link"/);
+assert.match(profileHtml, /href="\/talents\/talents\.css"/);
+assert.match(profileHtml, /src="\/talents\/profile\.js"/);
+assert.doesNotMatch(profileHtml, /头像|照片|手机号|微信|邮箱|真实姓名/);
+assert.doesNotMatch(profileScript, /innerHTML/);
+
+const { loadTalentProfile, renderTalentProfile } = await import('../talents/profile.js');
+const requests = [];
+const loaded = await loadTalentProfile(async (url) => {
+  requests.push(url);
+  if (url === '/api/network/config') {
+    return { ok: true, json: async () => ({ features: { network_enabled: true, talent_directory_enabled: true } }) };
+  }
+  return { ok: true, json: async () => ({ talent: { slug: 'manufacturing-kb-fde', display_name: '制造业知识库 FDE' } }) };
+}, '/talents/manufacturing-kb-fde/');
+assert.equal(requests[1], '/api/network/public/talents/manufacturing-kb-fde');
+assert.equal(loaded.slug, 'manufacturing-kb-fde');
+
+let missingRequest = 0;
+await assert.rejects(() => loadTalentProfile(async () => {
+  missingRequest += 1;
+  if (missingRequest === 1) {
+    return { ok: true, json: async () => ({ features: { network_enabled: true, talent_directory_enabled: true } }) };
+  }
+  return { ok: false, status: 404 };
+}, '/talents/invalid/'), /没有找到这份公开档案/);
+
+const disabledRequests = [];
+await assert.rejects(() => loadTalentProfile(async (url) => {
+  disabledRequests.push(url);
+  return { ok: true, json: async () => ({ features: { network_enabled: true, talent_directory_enabled: false } }) };
+}, '/talents/manufacturing-kb-fde/'), /人才网络正在灰度准备中/);
+assert.deepEqual(disabledRequests, ['/api/network/config']);
+
+function createProfileDocumentFixture() {
+  const ids = [
+    'profile-code', 'profile-name', 'profile-headline', 'profile-status', 'profile-certification',
+    'profile-summary', 'profile-package', 'profile-evidence', 'profile-not-fit', 'profile-meta',
+    'profile-tags', 'profile-request-link', 'profile-canonical', 'profile-state', 'profile-content',
+  ];
+  const nodes = Object.fromEntries(ids.map((id) => [id, {
+    id,
+    children: [],
+    hidden: id === 'profile-content',
+    append(...children) { this.children.push(...children); },
+    replaceChildren(...children) { this.children = children; },
+  }]));
+  return {
+    title: '',
+    nodes,
+    getElementById(id) { return nodes[id] ?? null; },
+    createElement(tagName) {
+      return { tagName, textContent: '', children: [], append(...children) { this.children.push(...children); } };
+    },
+  };
+}
+
+const profileDocument = createProfileDocumentFixture();
+renderTalentProfile(profileDocument, {
+  slug: 'manufacturing-kb-fde',
+  display_name: '<制造业知识库 FDE>',
+  headline: '把复杂现场知识变成可运行的 AI 流程',
+  city: '北京',
+  service_mode: 'hybrid',
+  availability: 'available',
+  status: 'member',
+  summary: '擅长知识梳理、检索设计与一线试点。',
+  service_package: '两周问题诊断与试点设计。',
+  evidence_summary: '已完成脱敏调研纪要和验收清单。',
+  not_fit: '不承接只要求演示的项目。',
+  tags: ['制造业', '<知识库>'],
+  certification_label: '尚未完成 OneX 认证',
+  photo_url: 'https://example.test/private.jpg',
+  phone: '13800000000',
+});
+assert.equal(profileDocument.nodes['profile-name'].textContent, '<制造业知识库 FDE>');
+assert.equal(profileDocument.nodes['profile-tags'].children[1].textContent, '<知识库>');
+assert.equal(profileDocument.nodes['profile-request-link'].href, '/enterprise/?talent=manufacturing-kb-fde');
+assert.equal(profileDocument.nodes['profile-canonical'].href, 'https://fde.onex.plus/talents/manufacturing-kb-fde/');
+assert.equal(profileDocument.nodes['profile-state'].hidden, true);
+assert.equal(profileDocument.nodes['profile-content'].hidden, false);
+
 console.log('FDE talent network deterministic checks passed');
