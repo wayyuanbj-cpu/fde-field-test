@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from datetime import datetime, timezone
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 DEFAULT_FLAGS = {
     "network_enabled": False,
     "talent_directory_enabled": False,
@@ -113,6 +113,7 @@ def initialize(conn: sqlite3.Connection, now: datetime | None = None) -> None:
             (stamp,),
         )
         _migrate_certification_and_delivery(conn, stamp)
+        _migrate_pending_presentation_status(conn, stamp)
         for key, enabled in DEFAULT_FLAGS.items():
             conn.execute(
                 "INSERT OR IGNORE INTO feature_flags(key, enabled, updated_at) VALUES(?,?,?)",
@@ -137,6 +138,25 @@ def _migrate_certification_and_delivery(conn: sqlite3.Connection, stamp: str) ->
     conn.execute("UPDATE talent_profiles SET certification_status='certified' WHERE status='certified'")
     conn.execute("UPDATE talent_profiles SET delivery_status='verified' WHERE status='delivery'")
     conn.execute("INSERT INTO schema_migrations(version, applied_at) VALUES(2, ?)", (stamp,))
+
+
+def _migrate_pending_presentation_status(conn: sqlite3.Connection, stamp: str) -> None:
+    if conn.execute("SELECT 1 FROM schema_migrations WHERE version=3").fetchone():
+        return
+    conn.execute(
+        """UPDATE talent_profiles SET certification_status='pending'
+        WHERE status='cert_pending' AND certification_status='not_certified'"""
+    )
+    conn.execute(
+        """UPDATE talent_profiles SET status = CASE
+            WHEN delivery_status='verified' THEN 'delivery'
+            WHEN certification_status='certified' THEN 'certified'
+            WHEN certification_status='pending' THEN 'cert_pending'
+            ELSE 'member'
+        END
+        WHERE status != 'inactive'"""
+    )
+    conn.execute("INSERT INTO schema_migrations(version, applied_at) VALUES(3, ?)", (stamp,))
 
 
 def public_config(conn: sqlite3.Connection) -> dict[str, bool]:

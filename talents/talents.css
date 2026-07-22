@@ -48,12 +48,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .directory-state { min-height:40px; color:var(--mist); font-size:13px; }
 .talent-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
 .talent-card { min-width:0; padding:28px; border:1px solid var(--line); background:var(--navy-900); }
-.talent-card-top { display:flex; justify-content:space-between; gap:16px; }
+.talent-card-top { display:grid; grid-template-columns:minmax(0,1fr) minmax(145px,auto); gap:8px 16px; align-items:start; }
 .talent-card-code { color:var(--cobalt); font:10px/1 var(--mono); letter-spacing:.1em; }
 .talent-status { color:var(--mist); font:10px/1.4 var(--mono); letter-spacing:.08em; }
+.talent-card-top .talent-card-code { grid-column:1; grid-row:1 / span 3; }
+.talent-card-top .talent-status,.talent-card-top .talent-certification,.talent-card-top .talent-delivery { grid-column:2; }
 .talent-certification { padding:6px 8px; color:#ffb49a; border:1px solid #8d4f3a; font-size:10px; font-weight:700; }
 .talent-certification { color:var(--orange); border-color:rgba(255,114,72,.5); }
 .talent-certification.is-certified { color:#9cc7ff; border-color:rgba(63,103,255,.65); }
+.talent-delivery { color:var(--mist); font:10px/1.4 var(--mono); }
+.talent-delivery.is-verified { color:#82d8c2; }
 .talent-card h2 { margin:42px 0 8px; font-size:27px; letter-spacing:-.035em; }
 .talent-card h3 { margin:0; color:var(--mist); font-size:14px; font-weight:500; line-height:1.5; }
 .talent-meta,.talent-tags { margin-top:22px; display:flex; flex-wrap:wrap; gap:7px; }
@@ -90,6 +94,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .profile-status-panel > span,.profile-status-panel > strong { display:block; }
 .profile-status-panel > span { color:var(--mist); font:10px/1.4 var(--mono); letter-spacing:.08em; }
 .profile-status-panel > strong { margin-top:14px; color:var(--orange); font-size:18px; }
+.profile-status-panel .talent-delivery { margin-top:12px; }
 .delivery-trail { display:grid; grid-template-columns:repeat(2,1fr); border-bottom:1px solid var(--line); }
 .delivery-trail article { min-height:320px; padding:48px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); }
 .delivery-trail article:nth-child(2n) { border-right:0; }
@@ -101,5 +106,5 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .profile-privacy { margin:0 0 72px; padding:28px; border:1px solid var(--line); background:var(--navy-900); }
 .profile-privacy p { margin:10px 0 0; color:var(--mist); line-height:1.8; }
 @media (max-width:850px) { .directory-hero { grid-template-columns:1fr; padding:72px 0; } .status-track { grid-template-columns:1fr 1fr; } .status-track article:nth-child(2) { border-right:0; } .directory-section-head { grid-template-columns:1fr; } .filter-bar { grid-template-columns:1fr 1fr; } .filter-bar button { grid-column:1/-1; } .talent-grid { grid-template-columns:1fr; } .profile-hero,.profile-conversion { grid-template-columns:1fr; } .delivery-trail { grid-template-columns:1fr; } .delivery-trail article { border-right:0; } }
-@media (max-width:560px) { .network-header nav { display:none; } .network-main { width:min(100% - 28px,1220px); } .directory-hero h1 { font-size:52px; } .status-track,.network-next-actions { grid-template-columns:1fr; } .network-next-actions article,.status-track article { border-right:0; border-bottom:1px solid var(--line); } .boundary-panel { grid-template-columns:1fr; } .filter-bar { grid-template-columns:1fr; } .talent-card { padding:20px; } .talent-card-top { align-items:flex-start; flex-direction:column; } .network-footer { flex-direction:column; } }
+@media (max-width:560px) { .network-header nav { display:none; } .network-main { width:min(100% - 28px,1220px); } .directory-hero h1 { font-size:52px; } .status-track,.network-next-actions { grid-template-columns:1fr; } .network-next-actions article,.status-track article { border-right:0; border-bottom:1px solid var(--line); } .boundary-panel { grid-template-columns:1fr; } .filter-bar { grid-template-columns:1fr; } .talent-card { padding:20px; } .talent-card-top { grid-template-columns:1fr; } .talent-card-top .talent-card-code,.talent-card-top .talent-status,.talent-card-top .talent-certification,.talent-card-top .talent-delivery { grid-column:1; grid-row:auto; } .network-footer { flex-direction:column; } }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; } }

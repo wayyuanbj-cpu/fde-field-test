@@ -274,6 +274,11 @@ def _public_profile(conn, row) -> dict:
         if row["certification_status"] != "certified"
         else "OneX 认证 FDE"
     )
+    result["delivery_label"] = (
+        "已有经核验交付记录"
+        if row["delivery_status"] == "verified"
+        else "尚无经核验交付记录"
+    )
     return result
 
 
@@ -318,6 +323,11 @@ def _validate_profile(payload: dict) -> dict:
         raise ValidationError("invalid certification status")
     if clean["delivery_status"] not in DELIVERY_STATUSES:
         raise ValidationError("invalid delivery status")
+    expected_status = _presentation_status(
+        clean["certification_status"], clean["delivery_status"]
+    )
+    if clean["status"] != "inactive" and clean["status"] != expected_status:
+        raise ValidationError("status does not match certification and delivery states")
     if clean["locale"] not in LOCALES:
         raise ValidationError("invalid locale")
     if not isinstance(payload["public_authorized"], bool):
@@ -328,6 +338,16 @@ def _validate_profile(payload: dict) -> dict:
     clean["tags"] = tags
     clean["public_authorized"] = payload["public_authorized"]
     return clean
+
+
+def _presentation_status(certification_status: str, delivery_status: str) -> str:
+    if delivery_status == "verified":
+        return "delivery"
+    if certification_status == "certified":
+        return "certified"
+    if certification_status == "pending":
+        return "cert_pending"
+    return "member"
 
 
 def _text(value, field: str, maximum: int) -> str:

@@ -44,8 +44,9 @@ assert.deepEqual(
   }),
   {
     slug: 'manufacturing-kb-fde',
-    statusLabel: '人才库成员',
+    statusLabel: 'OneX 交付 FDE',
     certificationLabel: '尚未完成 OneX 认证',
+    deliveryLabel: '已有经核验交付记录',
     serviceModeLabel: '混合协作',
     availabilityLabel: '可对接',
     isCertified: false,
@@ -55,6 +56,33 @@ assert.equal(
   presentTalent({ status: 'delivery', certification_status: 'not_certified', certification_label: 'OneX 认证 FDE' }).certificationLabel,
   '尚未完成 OneX 认证',
 );
+assert.deepEqual(
+  presentTalent({ status: 'certified', certification_status: 'not_certified', delivery_status: 'unverified' }),
+  {
+    slug: '', statusLabel: '人才库成员', certificationLabel: '尚未完成 OneX 认证',
+    deliveryLabel: '尚无经核验交付记录', serviceModeLabel: '服务方式待确认', availabilityLabel: '档期待确认', isCertified: false,
+  },
+);
+assert.equal(
+  presentTalent({ status: 'member', certification_status: 'certified', delivery_status: 'unverified' }).statusLabel,
+  'OneX 认证 FDE',
+);
+assert.equal(
+  presentTalent({ status: 'member', certification_status: 'not_certified', delivery_status: 'verified' }).statusLabel,
+  'OneX 交付 FDE',
+);
+assert.deepEqual(
+  {
+    status: presentTalent({ status: 'member', certification_status: 'pending', delivery_status: 'unverified' }).statusLabel,
+    certification: presentTalent({ status: 'member', certification_status: 'pending', delivery_status: 'unverified' }).certificationLabel,
+    delivery: presentTalent({ status: 'member', certification_status: 'pending', delivery_status: 'unverified' }).deliveryLabel,
+  },
+  { status: '认证审核中', certification: '尚未完成 OneX 认证', delivery: '尚无经核验交付记录' },
+);
+const certifiedDeliveryView = presentTalent({ status: 'member', certification_status: 'certified', delivery_status: 'verified' });
+assert.equal(certifiedDeliveryView.statusLabel, 'OneX 交付 FDE');
+assert.equal(certifiedDeliveryView.certificationLabel, 'OneX 认证 FDE');
+assert.equal(certifiedDeliveryView.deliveryLabel, '已有经核验交付记录');
 assert.equal(
   presentTalent({ status: 'member', certification_status: 'certified', delivery_status: 'unverified' }).certificationLabel,
   'OneX 认证 FDE',
@@ -78,8 +106,9 @@ const card = buildTalentCardModel({
   certification_label: '尚未完成 OneX 认证',
 });
 assert.equal(card.profilePath, '/talents/manufacturing-kb-fde/');
-assert.equal(card.statusLabel, '人才库成员');
+assert.equal(card.statusLabel, 'OneX 交付 FDE');
 assert.equal(card.certificationLabel, '尚未完成 OneX 认证');
+assert.equal(card.deliveryLabel, '已有经核验交付记录');
 assert.equal(card.evidence, '已完成脱敏调研纪要和验收清单。');
 assert.deepEqual(card.tags, ['制造业', '知识库']);
 
@@ -118,6 +147,7 @@ const renderedCard = renderTalentCard({
   summary: '概要', service_package: '服务包', evidence_summary: '脱敏证据', not_fit: '边界', tags: ['交付'],
 }, createDocumentFixture());
 assert.equal(findByClassName(renderedCard, 'talent-evidence-label').textContent, '可核验的脱敏证据');
+assert.equal(findByClassName(renderedCard, 'talent-delivery').textContent, '已有经核验交付记录');
 
 assert.deepEqual(
   normalizeFilters(new URLSearchParams('status=member&city=%E5%8C%97%E4%BA%AC')),
@@ -182,6 +212,7 @@ assert.match(
 assert.match(profileHtml, /id="profile-state"/);
 assert.match(profileHtml, /id="profile-content"[^>]+hidden/);
 assert.match(profileHtml, /id="profile-request-link"/);
+assert.match(profileHtml, /id="profile-delivery"/);
 assert.match(profileHtml, /href="\/talents\/talents\.css"/);
 assert.match(profileHtml, /src="\/talents\/profile\.js"/);
 assert.match(profileHtml, /公开页不展示真实姓名、手机、邮箱、微信、客户机密或精确考试分数/);
@@ -236,7 +267,7 @@ await assert.rejects(() => loadTalentProfile(async (url) => {
 
 function createProfileDocumentFixture() {
   const ids = [
-    'profile-code', 'profile-name', 'profile-headline', 'profile-status', 'profile-certification',
+    'profile-code', 'profile-name', 'profile-headline', 'profile-status', 'profile-certification', 'profile-delivery',
     'profile-summary', 'profile-package', 'profile-evidence', 'profile-not-fit', 'profile-meta',
     'profile-tags', 'profile-request-link', 'profile-canonical', 'profile-state', 'profile-content',
   ];

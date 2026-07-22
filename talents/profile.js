@@ -60,6 +60,7 @@ export function renderTalentProfile(documentObject, talent) {
   setText(documentObject, 'profile-headline', talent.headline);
   setText(documentObject, 'profile-status', view.statusLabel);
   setText(documentObject, 'profile-certification', view.certificationLabel);
+  setText(documentObject, 'profile-delivery', view.deliveryLabel);
   setText(documentObject, 'profile-summary', talent.summary);
   setText(documentObject, 'profile-package', talent.service_package);
   setText(documentObject, 'profile-evidence', talent.evidence_summary);

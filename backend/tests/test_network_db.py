@@ -65,7 +65,7 @@ class NetworkDatabaseTests(unittest.TestCase):
         )
         self.assertEqual(
             conn.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0],
-            2,
+            3,
         )
         columns = {
             row[1] for row in conn.execute("PRAGMA table_info(talent_profiles)")
@@ -111,6 +111,14 @@ class NetworkDatabaseTests(unittest.TestCase):
             ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             ("legacy-delivery", base[0], base[1], base[2], base[3], base[4], base[5], "delivery", *base[6:]),
         )
+        conn.execute(
+            """INSERT INTO talent_profiles(
+              slug, display_name, real_name, headline, city, service_mode, availability, status,
+              summary, not_fit, service_package, evidence_summary, public_authorized, locale,
+              published_at, created_at, updated_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            ("legacy-pending", base[0], base[1], base[2], base[3], base[4], base[5], "cert_pending", *base[6:]),
+        )
         conn.commit()
 
         initialize(conn, self.now)
@@ -121,10 +129,14 @@ class NetworkDatabaseTests(unittest.TestCase):
         delivery = conn.execute(
             "SELECT certification_status, delivery_status FROM talent_profiles WHERE slug='legacy-delivery'"
         ).fetchone()
+        pending = conn.execute(
+            "SELECT certification_status, delivery_status FROM talent_profiles WHERE slug='legacy-pending'"
+        ).fetchone()
         self.assertEqual(tuple(certified), ("certified", "unverified"))
         self.assertEqual(tuple(delivery), ("not_certified", "verified"))
+        self.assertEqual(tuple(pending), ("pending", "unverified"))
         self.assertEqual(
-            conn.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0], 2
+            conn.execute("SELECT MAX(version) FROM schema_migrations").fetchone()[0], 3
         )
         conn.close()
 
@@ -152,6 +164,32 @@ class NetworkDatabaseTests(unittest.TestCase):
             set_feature_flag(conn, "unknown", True, "owner:1", self.now)
         with self.assertRaises(Exception):
             conn.execute("UPDATE audit_events SET action='changed'")
+        conn.close()
+
+    def test_initialize_v3_normalizes_inconsistent_v2_presentation_status(self):
+        conn = connect(self.temp.name)
+        initialize(conn, self.now)
+        profile = save_profile(conn, PROFILE_PAYLOAD, "operator:1", self.now)
+        with conn:
+            conn.execute(
+                """UPDATE talent_profiles
+                SET status='certified', certification_status='not_certified', delivery_status='verified'
+                WHERE id=?""",
+                (profile["id"],),
+            )
+            conn.execute("DELETE FROM schema_migrations WHERE version=3")
+
+        initialize(conn, self.now)
+
+        migrated = conn.execute(
+            "SELECT status, certification_status, delivery_status FROM talent_profiles WHERE id=?",
+            (profile["id"],),
+        ).fetchone()
+        self.assertEqual(tuple(migrated), ("delivery", "not_certified", "verified"))
+        self.assertEqual(
+            conn.execute("SELECT COUNT(*) FROM schema_migrations WHERE version=3").fetchone()[0],
+            1,
+        )
         conn.close()
 
     def test_public_projection_excludes_private_and_unpublished_profiles(self):
@@ -219,9 +257,11 @@ class NetworkDatabaseTests(unittest.TestCase):
         self.assertEqual(delivery_public["delivery_status"], "verified")
         self.assertEqual(delivery_public["certification_status"], "not_certified")
         self.assertEqual(delivery_public["certification_label"], "尚未完成 OneX 认证")
+        self.assertEqual(delivery_public["delivery_label"], "已有经核验交付记录")
         self.assertEqual(certified_public["certification_status"], "certified")
         self.assertEqual(certified_public["delivery_status"], "unverified")
         self.assertEqual(certified_public["certification_label"], "OneX 认证 FDE")
+        self.assertEqual(certified_public["delivery_label"], "尚无经核验交付记录")
         published_audit = conn.execute(
             "SELECT after_json FROM audit_events WHERE action='talent_profile.published' AND object_id='certified-only'"
         ).fetchone()
@@ -246,6 +286,68 @@ class NetworkDatabaseTests(unittest.TestCase):
                         "operator:1",
                         self.now,
                     )
+        index = 0
+        for certification in ("not_certified", "pending", "certified"):
+            for delivery_state in ("unverified", "verified"):
+                expected = (
+                    "delivery" if delivery_state == "verified"
+                    else "certified" if certification == "certified"
+                    else "cert_pending" if certification == "pending"
+                    else "member"
+                )
+                for status in ("member", "cert_pending", "certified", "delivery"):
+                    if status == expected:
+                        continue
+                    with self.subTest(
+                        status=status,
+                        certification=certification,
+                        delivery=delivery_state,
+                    ):
+                        slug = f"mismatch-{index}"
+                        index += 1
+                        with self.assertRaises(ValidationError):
+                            save_profile(
+                                conn,
+                                {
+                                    **PROFILE_PAYLOAD,
+                                    "slug": slug,
+                                    "status": status,
+                                    "certification_status": certification,
+                                    "delivery_status": delivery_state,
+                                },
+                                "operator:1",
+                                self.now,
+                            )
+                        self.assertIsNone(get_public_profile(conn, slug))
+        conn.close()
+
+    def test_status_matrix_accepts_each_consistent_public_combination(self):
+        conn = connect(self.temp.name)
+        initialize(conn, self.now)
+        matrix = (
+            ("member", "not_certified", "unverified"),
+            ("cert_pending", "pending", "unverified"),
+            ("certified", "certified", "unverified"),
+            ("delivery", "not_certified", "verified"),
+            ("delivery", "pending", "verified"),
+            ("delivery", "certified", "verified"),
+        )
+        for index, (status, certification, delivery) in enumerate(matrix):
+            profile = save_profile(
+                conn,
+                {
+                    **PROFILE_PAYLOAD,
+                    "slug": f"matrix-{index}",
+                    "status": status,
+                    "certification_status": certification,
+                    "delivery_status": delivery,
+                },
+                "operator:1",
+                self.now,
+            )
+            publish_profile(conn, profile["id"], "operator:1", self.now)
+            public = get_public_profile(conn, profile["slug"])
+            self.assertEqual(public["status"], status)
         conn.close()
 
     def test_filters_are_allowlisted_and_parameterized(self):

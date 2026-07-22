@@ -49,7 +49,10 @@ export function renderTalentCard(talent, documentObject = document) {
   const certification = documentObject.createElement('strong');
   certification.className = `talent-certification${cardModel.isCertified ? ' is-certified' : ''}`;
   certification.textContent = cardModel.certificationLabel;
-  top.append(code, status, certification);
+  const delivery = documentObject.createElement('span');
+  delivery.className = `talent-delivery${talent.delivery_status === 'verified' ? ' is-verified' : ''}`;
+  delivery.textContent = cardModel.deliveryLabel;
+  top.append(code, status, certification, delivery);
   const title = documentObject.createElement('h2');
   title.textContent = cardModel.displayName;
   const headline = documentObject.createElement('h3');

@@ -8,7 +8,7 @@ const browser = await chromium.launch({ headless: true });
 const fixture = {
   slug: 'manufacturing-kb-fde', display_name: '制造业知识库 FDE',
   headline: '把复杂现场知识变成可运行的 AI 流程', city: '北京',
-  service_mode: 'hybrid', availability: 'available', status: 'member',
+  service_mode: 'hybrid', availability: 'available', status: 'delivery',
   certification_status: 'not_certified', delivery_status: 'verified',
   summary: '擅长知识梳理、检索设计与一线试点。',
   not_fit: '不承接只要求演示的项目。', service_package: '两周问题诊断与试点设计。',
@@ -19,6 +19,7 @@ const fixture = {
 async function pageWithRoutes(viewport, scenario = {}) {
   const config = scenario.config ?? { network_enabled: true, talent_directory_enabled: true };
   const detailStatus = scenario.detailStatus ?? 200;
+  const talent = scenario.fixture ?? fixture;
   const context = await browser.newContext({ viewport });
   await context.addInitScript(() => { window.__FDE_NETWORK_PREVIEW__ = true; });
   const page = await context.newPage();
@@ -34,10 +35,10 @@ async function pageWithRoutes(viewport, scenario = {}) {
   await page.route('**/api/network/public/talents/*', (route) => route.fulfill({
     status: detailStatus,
     contentType: 'application/json',
-    body: scenario.detailBody ?? (detailStatus === 200 ? JSON.stringify({ talent: fixture }) : JSON.stringify({ error: 'not_found' })),
+    body: scenario.detailBody ?? (detailStatus === 200 ? JSON.stringify({ talent }) : JSON.stringify({ error: 'not_found' })),
   }));
   await page.route(/\/api\/network\/public\/talents(?:\?.*)?$/, (route) => {
-    const responses = scenario.listResponses ?? [{ status: 200, items: [fixture] }];
+    const responses = scenario.listResponses ?? [{ status: 200, items: [talent] }];
     const selected = responses[Math.min(listAttempts, responses.length - 1)];
     listAttempts += 1;
     return route.fulfill({
@@ -73,9 +74,10 @@ try {
   await desktop.page.waitForURL('**/talents/manufacturing-kb-fde/');
   await desktop.page.getByRole('heading', { name: '制造业知识库 FDE' }).waitFor();
   assert.equal(await desktop.page.locator('#profile-recovery').isVisible(), false);
-  assert.equal(await desktop.page.locator('#profile-status').getByText('人才库成员', { exact: true }).isVisible(), true);
+  assert.equal(await desktop.page.locator('#profile-status').getByText('OneX 交付 FDE', { exact: true }).isVisible(), true);
   assert.equal(await desktop.page.getByText('OneX 认证 FDE', { exact: true }).count(), 0);
   assert.equal(await desktop.page.locator('#profile-certification').getByText('尚未完成 OneX 认证', { exact: true }).isVisible(), true);
+  assert.equal(await desktop.page.locator('#profile-delivery').getByText('已有经核验交付记录', { exact: true }).isVisible(), true);
   assert.equal(await desktop.page.getByText('公开测试、培训结业、人才入库、正式认证和项目交付记录分别核验、分别存储、分别展示，任何一项都不能替代另一项。', { exact: true }).isVisible(), true);
   assert.equal(await desktop.page.getByText('两周问题诊断与试点设计。', { exact: true }).isVisible(), true);
   assert.equal(await desktop.page.getByText('已完成脱敏调研纪要和验收清单。', { exact: true }).isVisible(), true);
@@ -83,6 +85,25 @@ try {
   assert.equal(await desktop.page.getByRole('link', { name: '带着这位 FDE 提交需求' }).getAttribute('href'), '/enterprise/?talent=manufacturing-kb-fde');
   assert.deepEqual(desktop.errors, []);
   await desktop.context.close();
+
+  const certifiedOnly = await pageWithRoutes(
+    { width: 1440, height: 1000 },
+    {
+      fixture: {
+        ...fixture,
+        slug: 'certified-only-fde',
+        status: 'certified',
+        certification_status: 'certified',
+        delivery_status: 'unverified',
+        certification_label: 'OneX 认证 FDE',
+      },
+    },
+  );
+  await certifiedOnly.page.goto(new URL('talents/certified-only-fde/', baseUrl).href, { waitUntil: 'networkidle' });
+  assert.equal(await certifiedOnly.page.locator('#profile-certification').getByText('OneX 认证 FDE', { exact: true }).isVisible(), true);
+  assert.equal(await certifiedOnly.page.locator('#profile-delivery').getByText('尚无经核验交付记录', { exact: true }).isVisible(), true);
+  assert.equal(await certifiedOnly.page.locator('#profile-status').getByText('OneX 认证 FDE', { exact: true }).isVisible(), true);
+  await certifiedOnly.context.close();
 
   const mobile = await pageWithRoutes({ width: 390, height: 844 });
   await mobile.page.goto(new URL('talents/manufacturing-kb-fde/', baseUrl).href, { waitUntil: 'networkidle' });

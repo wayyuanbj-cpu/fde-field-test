@@ -30,12 +30,19 @@ export function profileSlug(pathname) {
 }
 
 export function presentTalent(talent) {
-  const status = STATUS_LABELS[talent?.status] ? talent.status : 'member';
+  const certificationStatus = talent?.certification_status;
+  const deliveryStatus = talent?.delivery_status;
+  const status = deliveryStatus === 'verified'
+    ? 'delivery'
+    : certificationStatus === 'certified'
+      ? 'certified'
+      : certificationStatus === 'pending' ? 'cert_pending' : 'member';
   const isCertified = talent?.certification_status === 'certified';
   return {
     slug: SLUG.test(String(talent?.slug ?? '')) ? talent.slug : '',
     statusLabel: STATUS_LABELS[status],
     certificationLabel: isCertified ? 'OneX 认证 FDE' : '尚未完成 OneX 认证',
+    deliveryLabel: deliveryStatus === 'verified' ? '已有经核验交付记录' : '尚无经核验交付记录',
     serviceModeLabel: SERVICE_MODE_LABELS[talent?.service_mode] ?? '服务方式待确认',
     availabilityLabel: AVAILABILITY_LABELS[talent?.availability] ?? '档期待确认',
     isCertified,

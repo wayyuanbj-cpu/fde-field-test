@@ -141,7 +141,7 @@ PYTHONPATH=backend FDE_NETWORK_DB=/tmp/fde-network.db python3 -m fde_network.app
 
 首批真实资料使用已被 Git 忽略的 `data/first-batch-talents.local.json`。先验证，再显式决定是否发布：
 
-每条导入记录必须分别填写 `certification_status` (`not_certified|pending|certified`) 和 `delivery_status` (`unverified|verified`)。`status` 仅用于目录展示和筛选，不能授予认证徽章；交付核验也不会自动转为 OneX 认证。服务首次启动时会将旧库安全迁移到 schema v2：旧 `certified` 状态回填认证，旧 `delivery` 状态只回填交付核验。
+每条导入记录必须分别填写 `certification_status` (`not_certified|pending|certified`) 和 `delivery_status` (`unverified|verified`)。`status` 仅用于目录展示和筛选，不能授予认证徽章；交付核验也不会自动转为 OneX 认证。展示状态必须与两个独立事实一致：已核验交付优先对应 `delivery`；否则认证的 `certified|pending|not_certified` 依次对应 `certified|cert_pending|member`；`inactive` 仅用于非公开档案。不一致导入会失败并不会发布。服务首次启动时会将旧库安全迁移到 schema v3：旧 `certified` 状态回填认证，旧 `delivery` 状态只回填交付核验，旧 `cert_pending` 回填为待认证。
 
 ```bash
 PYTHONPATH=backend python3 -m fde_network.import_talents --db /tmp/fde-network.db \
