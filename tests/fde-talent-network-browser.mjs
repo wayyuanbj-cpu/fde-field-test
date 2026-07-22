@@ -65,8 +65,9 @@ try {
   await desktop.page.getByRole('link', { name: '查看 制造业知识库 FDE 的独立主页' }).click();
   await desktop.page.waitForURL('**/talents/manufacturing-kb-fde/');
   await desktop.page.getByRole('heading', { name: '制造业知识库 FDE' }).waitFor();
+  assert.equal(await desktop.page.locator('#profile-status').getByText('人才库成员', { exact: true }).isVisible(), true);
+  assert.equal(await desktop.page.getByText('OneX 认证 FDE', { exact: true }).count(), 0);
   assert.equal(await desktop.page.locator('#profile-certification').getByText('尚未完成 OneX 认证', { exact: true }).isVisible(), true);
-  assert.equal(await desktop.page.locator('#profile-content .is-certified').count(), 0);
   assert.equal(await desktop.page.getByText('公开测试、培训结业、人才入库、正式认证和项目交付记录分别核验、分别存储、分别展示，任何一项都不能替代另一项。', { exact: true }).isVisible(), true);
   assert.equal(await desktop.page.getByText('两周问题诊断与试点设计。', { exact: true }).isVisible(), true);
   assert.equal(await desktop.page.getByText('已完成脱敏调研纪要和验收清单。', { exact: true }).isVisible(), true);
