@@ -46,6 +46,14 @@ assert.deepEqual(
     isCertified: false,
   },
 );
+assert.equal(
+  presentTalent({ status: 'member', certification_label: 'OneX 认证 FDE' }).certificationLabel,
+  '尚未完成 OneX 认证',
+);
+assert.equal(
+  presentTalent({ status: 'cert_pending', certification_label: 'OneX 认证 FDE' }).certificationLabel,
+  '尚未完成 OneX 认证',
+);
 
 assert.deepEqual(
   normalizeFilters(new URLSearchParams('status=member&city=%E5%8C%97%E4%BA%AC')),
