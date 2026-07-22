@@ -22,6 +22,34 @@ assert.match(html, /name="learning_goal"/);
 assert.match(html, /name="consent"/);
 assert.match(html, /不保证。培训提供能力训练和交付反馈/);
 assert.doesNotMatch(html, /完成培训即可获得认证|付款后自动进入人才库/);
+assert.match(html, /id="outcomes"/);
+assert.match(html, /你会完整跑一遍企业 AI 交付/);
+for (const outcome of [
+  '企业问题诊断',
+  'AI 方案设计',
+  'Demo／工作流搭建',
+  '项目推进与验收',
+  '客户培训与运营',
+  '复盘与答辩',
+]) {
+  assert.match(html, new RegExp(outcome));
+}
+assert.match(html, /id="graduation"/);
+assert.match(html, /结业不是听完课，是交出一个可验收项目包/);
+for (const rule of [
+  '70 分',
+  '85 分',
+  'AI 基础理论',
+  '工具实操',
+  '企业场景诊断',
+  'AI 方案设计',
+  'Demo／工作流搭建',
+  '答辩表达',
+  '30 天内',
+]) {
+  assert.match(html, new RegExp(rule));
+}
+assert.match(html, /允许使用 AI，但必须能解释自己的诊断、方案选择和实现过程/);
 assert.match(homeHtml, /id="home-training-link"[^>]+fde-training\/\?source=direct/);
 assert.match(homeHtml, /id="quick-training-link"/);
 assert.match(homeHtml, /id="exam-training-link"/);
