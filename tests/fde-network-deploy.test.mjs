@@ -7,6 +7,15 @@ import { fileURLToPath } from 'node:url';
 const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 const root = fileURLToPath(new URL('../', import.meta.url));
 
+function tlsServerBlock(config) {
+  const tlsMarker = 'listen 127.0.0.1:8443 ssl;';
+  const markerIndex = config.indexOf(tlsMarker);
+  assert.notEqual(markerIndex, -1, 'TLS server block must exist');
+  const start = config.lastIndexOf('\nserver {', markerIndex);
+  const nextServer = config.indexOf('\nserver {', markerIndex + tlsMarker.length);
+  return config.slice(start < 0 ? 0 : start, nextServer < 0 ? undefined : nextServer);
+}
+
 function request(port, pathname) {
   return new Promise((resolve, reject) => {
     const request = http.get(`http://127.0.0.1:${port}${pathname}`, (response) => {
@@ -26,6 +35,7 @@ async function withLocalIntegrationServer(callback) {
     env: { ...process.env, FDE_INTEGRATION_PORT: String(port), FDE_SITE_ROOT: root },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
+  const exitPromise = once(server, 'exit');
   let startup = '';
   server.stdout.on('data', (chunk) => { startup += chunk; });
   try {
@@ -37,8 +47,8 @@ async function withLocalIntegrationServer(callback) {
     assert.match(startup, /FDE local integration server/);
     await callback(port);
   } finally {
-    server.kill();
-    await once(server, 'exit');
+    if (server.exitCode === null && server.signalCode === null) server.kill();
+    await exitPromise;
   }
 }
 const service = read('deploy/fde-network.service');
@@ -49,14 +59,17 @@ assert.match(service, /ReadWritePaths=\/var\/lib\/fde-network/);
 assert.match(service, /ProtectSystem=strict/);
 const nginx = read('deploy/fde.onex.plus.nginx.conf');
 const localServer = read('tests/fde-local-integration-server.mjs');
+const tlsServer = tlsServerBlock(nginx);
+assert.match(tlsServer, /listen 127\.0\.0\.1:8443 ssl;/);
+assert.doesNotMatch(tlsServer, /listen \[::\]:80;/);
 assert.match(nginx, /location \^~ \/api\/network\//);
 assert.match(nginx, /proxy_pass http:\/\/127\.0\.0\.1:8766/);
 assert.match(nginx, /location = \/api\/network\/config/);
 assert.match(nginx, /location \^~ \/api\/network\/public\//);
 assert.ok(nginx.includes('location ~ ^/talents/[a-z0-9]+(?:-[a-z0-9]+)*/?$ {'));
 assert.match(nginx, /try_files \/talents\/profile\.html =404/);
-const profileLocation = nginx.indexOf('location ~ ^/talents/');
-const genericStaticFallback = nginx.indexOf('    location / {', profileLocation);
+const profileLocation = tlsServer.indexOf('location ~ ^/talents/');
+const genericStaticFallback = tlsServer.indexOf('    location / {');
 assert.ok(profileLocation >= 0 && profileLocation < genericStaticFallback, 'profile location must precede generic static fallback');
 assert.match(localServer, /TALENT_PROFILE_PATH/);
 assert.ok(localServer.includes('const TALENT_PROFILE_PATH = /^\\/talents\\/[a-z0-9]+(?:-[a-z0-9]+)*\\/?$/;'));
